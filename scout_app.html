@@ -20,34 +20,70 @@
             🎁
         </div>
 
-        <!-- Header / Greeting -->
-        <h1 class="text-2xl font-bold text-white mb-3">Hi <span id="scout-name" class="text-[#00b4d8]">Max</span>, <br>trainiere nicht allein!</h1>
-        
-        <!-- Subline -->
-        <p class="text-gray-400 mb-8 font-medium leading-relaxed">
-            Schenk deinen Freunden Fitness! <br>
-            <span class="text-sm opacity-60">Dein Code ist wertvoll. Teile ihn jetzt.</span>
-        </p>
-
-        <!-- Action Buttons -->
-        <div class="flex flex-col gap-4">
+        <!-- VIEW: DASHBOARD (Sharing) -->
+        <div id="view-dashboard" class="hidden">
+            <!-- Header / Greeting -->
+            <h1 class="text-2xl font-bold text-white mb-3">Hi <span id="scout-name" class="text-[#00b4d8]">Scout</span>, <br>trainiere nicht allein!</h1>
             
-            <!-- WhatsApp Button -->
-            <a id="whatsapp-btn" href="#" target="_blank" class="bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center transition-all shadow-lg hover:shadow-green-900/50 group">
-                <i class="fab fa-whatsapp text-3xl mr-3 group-hover:scale-110 transition-transform"></i>
-                <span class="text-lg">Per WhatsApp teilen</span>
-            </a>
+            <!-- Subline -->
+            <p class="text-gray-400 mb-8 font-medium leading-relaxed">
+                Schenk deinen Freunden Fitness! <br>
+                <span class="text-sm opacity-60">Dein Code ist wertvoll. Teile ihn jetzt.</span>
+            </p>
 
-            <!-- Copy Link Button -->
-            <button id="copy-btn" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center transition-all shadow-lg border border-gray-700 hover:border-gray-600 group">
-                <i id="copy-icon" class="fas fa-copy text-xl mr-3 text-[#00b4d8] group-hover:text-white transition-colors"></i>
-                <span id="copy-text" class="text-lg">Link kopieren</span>
-            </button>
-        
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-4">
+                
+                <!-- WhatsApp Button -->
+                <a id="whatsapp-btn" href="#" target="_blank" class="bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center transition-all shadow-lg hover:shadow-green-900/50 group">
+                    <i class="fab fa-whatsapp text-3xl mr-3 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-lg">Per WhatsApp teilen</span>
+                </a>
+
+                <!-- Copy Link Button -->
+                <button id="copy-btn" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center transition-all shadow-lg border border-gray-700 hover:border-gray-600 group">
+                    <i id="copy-icon" class="fas fa-copy text-xl mr-3 text-[#00b4d8] group-hover:text-white transition-colors"></i>
+                    <span id="copy-text" class="text-lg">Link kopieren</span>
+                </button>
+            
+            </div>
+            
+            <!-- Link Display (Optional) -->
+             <div class="mt-4 text-xs text-gray-600 break-all select-all font-mono" id="debug-link"></div>
+
         </div>
 
+        <!-- VIEW: REGISTER (Onboarding) -->
+        <div id="view-register" class="hidden">
+            <h1 class="text-2xl font-bold text-white mb-3">Werde <span class="text-[#00b4d8]">Scout</span>!</h1>
+            <p class="text-gray-400 mb-6 font-medium">
+                Registriere dich jetzt und erhalte deinen persönlichen Code zum Teilen.
+            </p>
+
+            <form id="register-form" class="text-left flex flex-col gap-4">
+                <div>
+                    <label class="block text-gray-500 text-sm font-bold mb-1 ml-1">Name</label>
+                    <input type="text" id="reg-name" required placeholder="Dein Name" 
+                        class="w-full p-3 bg-[#111111] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#00b4d8] focus:ring-1 focus:ring-[#00b4d8] transition-all">
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-sm font-bold mb-1 ml-1">E-Mail</label>
+                    <input type="email" id="reg-email" required placeholder="deine@mail.de" 
+                        class="w-full p-3 bg-[#111111] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#00b4d8] focus:ring-1 focus:ring-[#00b4d8] transition-all">
+                </div>
+
+                <div id="reg-error" class="text-red-500 text-sm hidden text-center">Fehler beim Erstellen.</div>
+
+                <button type="submit" id="reg-btn"
+                    class="mt-2 bg-gradient-to-r from-[#00b4d8] to-[#0096b4] hover:from-[#00c4e8] hover:to-[#00a6c4] text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-cyan-900/20 transform hover:-translate-y-0.5">
+                    Jetzt Scout werden 🚀
+                </button>
+            </form>
+        </div>
+
+
         <!-- Toast (Hidden by default) -->
-        <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-[#00b4d8] text-white px-6 py-3 rounded-full shadow-[0_0_20px_rgba(0,180,216,0.5)] opacity-0 transition-opacity duration-300 pointer-events-none flex items-center font-bold">
+        <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-[#00b4d8] text-white px-6 py-3 rounded-full shadow-[0_0_20px_rgba(0,180,216,0.5)] opacity-0 transition-opacity duration-300 pointer-events-none flex items-center font-bold z-50">
             <i class="fas fa-check-circle text-white mr-2"></i> Link kopiert!
         </div>
 
@@ -57,30 +93,68 @@
         <img src="https://studios-in-motion.de/assets/images/logo-light.svg" alt="Studios in Motion" class="h-6 mx-auto invert grayscale" onerror="this.style.display='none'">
     </div>
 
-    <script>
+    <!-- SUPABASE & APP LOGIC -->
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
         // CONFIG
-        const LANDING_PAGE_URL = 'http://localhost:3000/test_page.html';
+        const LANDING_PAGE_URL = 'https://simscouting.studios-in-motion.de/test_page.html';
+        const SUPABASE_URL = 'https://rmtyebyzitzgkplxvzxg.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_2qDg3Jssg_fTPdXl_3Ku-g_1yOkdJ3i';
+        const TENANT_ID = '79a37c78-7bdf-45e4-a631-fb47926d054d';
 
-        // Get Scout ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        let scoutId = urlParams.get('id');
+        // Init Supabase
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // FALLBACK FOR LOCAL TESTING
-        if (!scoutId && window.location.hostname === 'localhost') {
-            console.log('No ID found, using fallback ID for testing.');
-            scoutId = '92c31c93-0cfc-4282-864e-42a03e153f8b';
+        // App Logic
+        async function initApp() {
+            // Get Scout ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            let scoutId = urlParams.get('id');
+
+            // View Elements
+            const viewDashboard = document.getElementById('view-dashboard');
+            const viewRegister = document.getElementById('view-register');
+            const scoutNameEl = document.getElementById('scout-name');
+
+            // Routing Logic
+            if (scoutId) {
+                // SHOW DASHBOARD
+                viewDashboard.classList.remove('hidden');
+                initDashboard(scoutId);
+                
+                // Optional: Fetch Scout Name
+                fetchScoutName(scoutId);
+            } else {
+                // SHOW REGISTRATION
+                viewRegister.classList.remove('hidden');
+                initRegistration();
+            }
         }
 
-        // Logic
-        if (scoutId) {
+        async function fetchScoutName(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('scouts')
+                    .select('name')
+                    .eq('id', id)
+                    .single();
+                
+                if (data && data.name) {
+                    document.getElementById('scout-name').textContent = data.name;
+                }
+            } catch (e) { console.log('Could not fetch name', e); }
+        }
+
+        function initDashboard(scoutId) {
             const referralLink = `${LANDING_PAGE_URL}?ref=${scoutId}`;
             const whatsappText = `Hey, ich lade dich zu 7 Tagen Training ein! Hol dir hier deinen Pass: ${referralLink}`;
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
 
-            // Setup WhatsApp Button
+            // Setup Buttons
             document.getElementById('whatsapp-btn').href = whatsappUrl;
+            // document.getElementById('debug-link').textContent = referralLink; // Optional Debug
 
-            // Setup Copy Button
             const copyBtn = document.getElementById('copy-btn');
             const copyText = document.getElementById('copy-text');
             const copyIcon = document.getElementById('copy-icon');
@@ -106,8 +180,53 @@
                     alert('Konnte Link nicht kopieren: ' + referralLink);
                 });
             };
-        } else {
-            document.body.innerHTML = '<div class="text-red-500 font-bold p-4 bg-[#1a1a1a] rounded shadow m-4 border border-red-900">Fehler: Keine Scout-ID übergeben! Bitte ?id=... an die URL anhängen.</div>';
+        }
+
+        function initRegistration() {
+            const form = document.getElementById('register-form');
+            const btn = document.getElementById('reg-btn');
+            const errorMsg = document.getElementById('reg-error');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                btn.disabled = true;
+                btn.textContent = 'Erstelle Account...';
+                errorMsg.classList.add('hidden');
+
+                const name = document.getElementById('reg-name').value;
+                const email = document.getElementById('reg-email').value;
+
+                try {
+                    // Insert into Supabase
+                    const { data, error } = await supabase
+                        .from('scouts')
+                        .insert({
+                            tenant_id: TENANT_ID,
+                            name: name,
+                            email: email,
+                            stats: {} // Empty JSONB
+                        })
+                        .select(); // Return inserted record to get ID
+
+                    if (error) throw error;
+
+                    if (data && data.length > 0) {
+                        const newScoutId = data[0].id;
+                        console.log('Registered!', newScoutId);
+                        // Redirect to self with new ID
+                        window.location.href = `?id=${newScoutId}`;
+                    } else {
+                        throw new Error('No data returned');
+                    }
+
+                } catch (err) {
+                    console.error('Registration error:', err);
+                    errorMsg.textContent = 'Fehler: ' + (err.message || 'Unbekannter Fehler');
+                    errorMsg.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.textContent = 'Jetzt Scout werden 🚀';
+                }
+            });
         }
 
         function showToast() {
@@ -117,7 +236,9 @@
                 toast.classList.add('opacity-0');
             }, 2000);
         }
-    </script>
 
+        // Run
+        initApp();
+    </script>
 </body>
 </html>
