@@ -102,6 +102,63 @@
         </div>
     </div>
 
+    <!-- Campaign Detail Modal (Hidden) -->
+    <div id="campaign-modal" class="fixed inset-0 bg-black/80 z-40 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl border border-slate-700">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-slate-700 bg-slate-800/50 rounded-t-2xl">
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                        <i class="fa-solid fa-bullhorn text-indigo-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 id="modal-campaign-name" class="text-2xl font-bold">Campaign Name</h2>
+                        <div class="text-sm text-slate-400">Kampagnen-Details & Performance</div>
+                    </div>
+                </div>
+                <button onclick="closeCampaignModal()" class="h-10 w-10 rounded-full hover:bg-slate-700 flex items-center justify-center transition">
+                    <i class="fa-solid fa-times text-slate-400 text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-6 overflow-y-auto modal-scroll flex-1">
+                
+                <!-- Mini KPIs -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Total Leads</div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-emerald-500"></i>
+                            <span id="modal-campaign-leads" class="text-2xl font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campaign Leads Table -->
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-slate-400"></i> Leads über diese Kampagne
+                </h3>
+                <div class="overflow-hidden rounded-xl border border-slate-700">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-400 text-sm">
+                                <th class="p-3 pl-4">Datum</th>
+                                <th class="p-3">Name</th>
+                                <th class="p-3">Scout</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-campaign-body" class="text-sm divide-y divide-slate-700 bg-slate-800/20">
+                            <tr><td colspan="3" class="p-4 text-center text-slate-500">Keine Daten</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content (Hidden until auth) -->
     <div id="dashboard" class="hidden p-6 max-w-7xl mx-auto">
         
@@ -199,9 +256,15 @@
         <!-- Lead Management Section (New) -->
         <div class="glass-panel rounded-xl p-6">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h3 class="text-xl font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-address-book text-emerald-400"></i> Neueste Leads & Anmeldungen
-                </h3>
+                <div class="flex flex-col gap-2">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-address-book text-emerald-400"></i> Neueste Leads & Anmeldungen
+                    </h3>
+                    <!-- Campaign Filter Box -->
+                    <div id="campaign-filter-container" class="flex flex-wrap gap-2 hidden">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
                 
                 <!-- Search -->
                 <div class="relative w-full md:w-64">
@@ -215,12 +278,23 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="text-slate-400 text-sm border-b border-slate-700 bg-slate-800/50">
-                            <th class="p-3 rounded-tl-lg">Datum</th>
+                            <th onclick="handleSort('created_at')" class="p-3 rounded-tl-lg cursor-pointer hover:text-white transition group select-none">
+                                Datum <i class="fa-solid fa-sort text-slate-600 group-hover:text-slate-400 ml-1 text-xs"></i>
+                            </th>
                             <th class="p-3">Quelle</th>
-                            <th class="p-3">Vorname</th>
-                            <th class="p-3">Nachname</th>
+                            <th onclick="handleSort('campaign')" class="p-3 cursor-pointer hover:text-white transition group select-none">
+                                Kampagne <i class="fa-solid fa-sort text-slate-600 group-hover:text-slate-400 ml-1 text-xs"></i>
+                            </th>
+                            <th onclick="handleSort('first_name')" class="p-3 cursor-pointer hover:text-white transition group select-none">
+                                Vorname <i class="fa-solid fa-sort text-slate-600 group-hover:text-slate-400 ml-1 text-xs"></i>
+                            </th>
+                            <th onclick="handleSort('last_name')" class="p-3 cursor-pointer hover:text-white transition group select-none">
+                                Nachname <i class="fa-solid fa-sort text-slate-600 group-hover:text-slate-400 ml-1 text-xs"></i>
+                            </th>
                             <th class="p-3">Telefon</th>
-                            <th class="p-3 rounded-tr-lg">Geworben von</th>
+                            <th onclick="handleSort('scout_name')" class="p-3 rounded-tr-lg cursor-pointer hover:text-white transition group select-none">
+                                Geworben von <i class="fa-solid fa-sort text-slate-600 group-hover:text-slate-400 ml-1 text-xs"></i>
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="leads-body" class="text-sm text-slate-300">
@@ -249,10 +323,12 @@
         // Init Supabase
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+
         // Global State
         let allLeads = []; 
         let allEvents = [];
         let scoutMap = {};
+        let sortConfig = { column: 'created_at', direction: 'desc' };
 
         // --- AUTH ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -304,9 +380,12 @@
                 }));
 
                 const totalLeads = allLeads.length;
-                document.getElementById('kpi-leads').textContent = totalLeads;
+                document.getElementById('kpi-leads').textContent = allLeads.length;
 
-                // Render Leads Table
+                // Render Filter
+                renderCampaignFilter(allLeads);
+
+                renderLeadsTable(allLeads);
                 renderLeadsTable(allLeads);
 
                 // Setup Search Listener
@@ -387,7 +466,7 @@
                         timestamp: new Date(inv.created_at),
                         scout: inv.scout_name,
                         details: `Neuer Lead: ${inv.first_name} ${inv.last_name}${sourceText}`,
-                        meta: null
+                        meta: leadData // Pass full leadData as meta to access campaign
                     });
                 });
 
@@ -476,25 +555,136 @@
 
         // Close on escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') window.closeScoutModal();
+            if (e.key === 'Escape') {
+                window.closeScoutModal();
+                window.closeCampaignModal();
+            }
         });
+
+        // --- CAMPAIGN MODAL LOGIC ---
+        window.openCampaignModal = function(campaignName) {
+            if (!campaignName) return;
+            const modal = document.getElementById('campaign-modal');
+            
+            // 1. Set Header
+            document.getElementById('modal-campaign-name').textContent = campaignName;
+
+            // 2. Filter Leads for this Campaign
+            const myLeads = allLeads.filter(l => {
+                let data = l.lead_data;
+                if (typeof data === 'string') try { data = JSON.parse(data); } catch(e){}
+                return data && (data.campaign === campaignName || data.utm_campaign === campaignName);
+            });
+            
+            document.getElementById('modal-campaign-leads').textContent = myLeads.length;
+
+            // 3. Render Table
+            const tbody = document.getElementById('modal-campaign-body');
+            tbody.innerHTML = '';
+
+            if (myLeads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Keine Leads in dieser Kampagne</td></tr>';
+            } else {
+                // Sort by date desc for modal
+                const sorted = [...myLeads].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                
+                sorted.forEach(lead => {
+                    const date = new Date(lead.created_at).toLocaleDateString();
+                    const row = `
+                        <tr class="border-b border-slate-700/50">
+                            <td class="p-3 pl-4 text-slate-400 font-mono text-xs">${date}</td>
+                            <td class="p-3 font-medium text-white">${lead.first_name} ${lead.last_name}</td>
+                            <td class="p-3 text-slate-400 text-sm">${lead.scout_name}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+
+            // Show
+            modal.classList.remove('hidden');
+        };
+
+        window.closeCampaignModal = function() {
+            document.getElementById('campaign-modal').classList.add('hidden');
+        };
+
+        // --- SORTING LOGIC ---
+        window.handleSort = function(column) {
+            if (sortConfig.column === column) {
+                // Toggle direction
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.column = column;
+                sortConfig.direction = 'asc'; // Default to asc for new column (names etc), but maybe desc for date? 
+                if (column === 'created_at') sortConfig.direction = 'desc'; // Exception for date
+            }
+
+            // Re-render
+            // Note: We need to respect the active filter if any exists! 
+            // Currently renderLeadsTable takes "leads" as input.
+            // But we trigger re-render of the *current view*.
+            
+            // Re-apply filter and sort
+            if (activeCampaignFilter) {
+                setCampaignFilter(activeCampaignFilter);
+            } else if (document.getElementById('lead-search').value) {
+                filterLeads(document.getElementById('lead-search').value);
+            } else {
+                renderLeadsTable(allLeads);
+            }
+        };
+
+        function sortLeads(leads) {
+            const { column, direction } = sortConfig;
+            
+            return [...leads].sort((a, b) => {
+                let valA, valB;
+
+                if (column === 'campaign') {
+                    // Extract campaign
+                    let dataA = a.lead_data;
+                    let dataB = b.lead_data;
+                    if (typeof dataA === 'string') try { dataA = JSON.parse(dataA); } catch(e){}
+                    if (typeof dataB === 'string') try { dataB = JSON.parse(dataB); } catch(e){}
+                    
+                    valA = (dataA?.campaign || dataA?.utm_campaign || '').toLowerCase();
+                    valB = (dataB?.campaign || dataB?.utm_campaign || '').toLowerCase();
+                } else {
+                    valA = (a[column] || '').toString().toLowerCase();
+                    valB = (b[column] || '').toString().toLowerCase();
+                }
+
+                if (column === 'created_at') {
+                   valA = new Date(a.created_at).getTime();
+                   valB = new Date(b.created_at).getTime();
+                }
+
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
 
 
         // --- RENDER FUNCTIONS ---
 
         function renderLeadsTable(leads) {
+            // Apply Sort
+            const sortedLeads = sortLeads(leads);
+
             const tbody = document.getElementById('leads-body');
             const counter = document.getElementById('leads-count');
             tbody.innerHTML = '';
             
-            counter.textContent = `${leads.length} Einträge`;
+            counter.textContent = `${sortedLeads.length} Einträge`;
 
-            if (leads.length === 0) {
+            if (sortedLeads.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Keine Leads gefunden</td></tr>';
                 return;
             }
 
-            leads.forEach(lead => {
+            sortedLeads.forEach(lead => {
                 const date = new Date(lead.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
                 
                 // Determine Source Icon
@@ -521,6 +711,9 @@
                     <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition">
                         <td class="p-3 text-slate-400 font-mono text-xs">${date}</td>
                         <td class="p-3 text-center">${sourceIcon}</td>
+                        <td class="p-3">
+                            ${renderCampaignBadge(leadData)} 
+                        </td>
                         <td class="p-3 font-medium text-white" title="Leaddetails ansehen">${lead.first_name || '-'}</td>
                         <td class="p-3 font-medium text-white" title="Leaddetails ansehen">${lead.last_name || '-'}</td>
                         <td class="p-3 text-slate-400">${lead.phone || '-'}</td>
@@ -629,15 +822,89 @@
 
                 const el = `
                     <div class="flex items-start gap-4 p-3 rounded-lg border ${borderClass} ${bgClass}">
-                        <div class="mt-1"><i class="${iconClass}"></i></div>
-                        <div>
-                            <div class="text-xs text-slate-400 mb-0.5">${time} • ${item.scout}</div>
-                            <div class="text-sm font-medium text-slate-200">${label}</div>
+                        <div class="mt-1"><i class="${iconClass} text-lg"></i></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-0.5">
+                                <span class="text-xs font-mono text-slate-500">${time}</span>
+                                <span class="text-xs font-bold text-slate-400">${item.scout}</span>
+                            </div>
+                            <div class="text-sm font-medium text-slate-200 break-words">
+                                ${label}
+                                ${ renderCampaignBadge(item.meta) }
+                            </div>
                         </div>
                     </div>
                 `;
                 container.innerHTML += el;
             });
+        }
+
+        // --- FILTER HELPERS ---
+        let activeCampaignFilter = null;
+
+        function renderCampaignFilter(leads) {
+            const container = document.getElementById('campaign-filter-container');
+            const campaigns = new Set();
+            
+            leads.forEach(l => {
+                let data = l.lead_data;
+                if (typeof data === 'string') try { data = JSON.parse(data); } catch(e){}
+                
+                if (data && (data.campaign || data.utm_campaign)) {
+                    campaigns.add(data.campaign || data.utm_campaign);
+                }
+            });
+
+            if (campaigns.size === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            container.innerHTML = '';
+
+            // 'All' Button
+            const allBtn = document.createElement('button');
+            allBtn.className = `px-3 py-1 rounded text-xs border font-medium transition ${activeCampaignFilter === null ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`;
+            allBtn.textContent = 'Alle';
+            allBtn.onclick = () => setCampaignFilter(null);
+            container.appendChild(allBtn);
+
+            campaigns.forEach(camp => {
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1 rounded text-xs border font-medium transition uppercase ${activeCampaignFilter === camp ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`;
+                btn.textContent = camp;
+                btn.onclick = () => setCampaignFilter(camp);
+                container.appendChild(btn);
+            });
+        }
+
+        function setCampaignFilter(camp) {
+            activeCampaignFilter = camp;
+            // Re-render buttons to update active state
+            renderCampaignFilter(allLeads);
+            
+            // Filter Leads
+            if (!camp) {
+                renderLeadsTable(allLeads);
+            } else {
+                const filtered = allLeads.filter(l => {
+                    let data = l.lead_data;
+                    if (typeof data === 'string') try { data = JSON.parse(data); } catch(e){}
+                    return data && (data.campaign === camp || data.utm_campaign === camp);
+                });
+                renderLeadsTable(filtered);
+            }
+        }
+    
+        // Helper
+        function renderCampaignBadge(meta) {
+            if (!meta || (!meta.campaign && !meta.utm_campaign)) return '';
+            const camp = meta.campaign || meta.utm_campaign;
+            // Removed "Via " and added click handler
+            return `<span onclick="event.stopPropagation(); openCampaignModal('${camp}')" class="inline-block px-1.5 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded border border-indigo-500/30 bg-indigo-500/20 text-indigo-300 cursor-pointer hover:bg-indigo-500/40 hover:text-white transition">
+                ${camp}
+            </span>`;
         }
     </script>
 </body>

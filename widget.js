@@ -30,9 +30,18 @@ class SimScoutingSDK {
    * @private
    */
   init() {
+    // Collect params from both search and hash (for robustness)
     const urlParams = new URLSearchParams(window.location.search);
-    const newScoutId = urlParams.get('ref') || urlParams.get('scout_id') || urlParams.get('referrer');
-    const newSource = urlParams.get('source');
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#\/?/, '')); // Handle #/foo?bar or #bar
+    
+    // Helper to get from either source
+    const getParam = (key) => urlParams.get(key) || hashParams.get(key);
+
+    const newScoutId = getParam('ref') || getParam('scout_id') || getParam('referrer');
+    const newSource = getParam('source');
+    
+    // Campaign: Check standard, utm, and capitalized versions
+    const newCampaign = getParam('campaign') || getParam('utm_campaign') || getParam('Campaign'); 
 
     if (newScoutId) {
       // New ID found in URL -> Save/Overwrite
@@ -48,6 +57,14 @@ class SimScoutingSDK {
     if (newSource) {
       localStorage.setItem('sim_scout_source', newSource);
       console.log('SIM-SDK: Source saved:', newSource);
+    }
+
+    if (newCampaign) { // Added Campaign Storage
+      localStorage.setItem('sim_scout_campaign', newCampaign);
+      console.log('SIM-SDK: Campaign saved:', newCampaign);
+    } else {
+        // Debug: Log complete check if campaign missing
+        console.log('SIM-SDK: No campaign found in URL.', { search: window.location.search, hash: window.location.hash });
     }
   }
 
@@ -65,6 +82,14 @@ class SimScoutingSDK {
    */
   getSource() {
       return localStorage.getItem('sim_scout_source'); // Key matches what was used in init()
+  }
+
+  /**
+   * Retrieves the currently stored Campaign.
+   * @returns {string|null} 
+   */
+  getCampaign() { // Added Campaign Getter
+      return localStorage.getItem('sim_scout_campaign'); 
   }
 
   /**
@@ -98,30 +123,34 @@ class SimScoutingSDK {
   async trackConversion(conversionName, additionalMeta = {}) {
     const scoutId = this.getScoutId();
     
-    // Even if no scoutId, we might want to track organic conversions if requirements change.
-    // But currently, the system focuses on attributed conversions.
-    
-    const payload = {
-      scout_id: scoutId || null, // Null allowed for organic conversions (visible via recent RLS fix)
-      event_type: 'conversion',
-      meta_data: { 
-        conversion_name: conversionName,
-        ...additionalMeta 
-      }
-    };
+    // Enrich with Source & Campaign
+    const source = this.getSource();
+    if (source) additionalMeta.source = source;
+
+    const campaign = this.getCampaign(); // Added Campaign Enrichment
+    if (campaign) additionalMeta.campaign = campaign;
+
+    if (!scoutId) {
+      console.warn('SIM-SDK: No Scout ID found. Conversion not tracked linked to a scout.');
+      // Optional: Track organic conversions?
+      // return; 
+    }
+
+    console.log(`SIM-SDK: Tracking conversion '${conversionName}' for Scout ${scoutId || 'Organic'}`);
 
     try {
       const { data, error } = await this.supabase
         .from('tracking_events')
-        .insert(payload)
-        .select();
+        .insert({
+          scout_id: scoutId || null, // Allow null for organic
+          event_type: 'conversion',
+          meta_data: { conversion_name: conversionName, ...additionalMeta }
+        });
 
       if (error) throw error;
-      
-      console.log(`SIM-SDK: Conversion '${conversionName}' tracked.`, data);
       return { success: true, data };
     } catch (err) {
-      console.error('SIM-SDK: Conversion tracking failed', err);
+      console.error('SIM-SDK: Conversion tracking failed:', err);
       return { success: false, error: err };
     }
   }
@@ -152,11 +181,7 @@ class SimScoutingSDK {
 window.SimScouting = new SimScoutingSDK();
 
 
-/**
- * Web Component: <sim-scouting-widget>
- * Displays the lead capture form and handles submission.
- * Uses window.SimScouting for tracking logic.
- */
+// --- WEB COMPONENT: <sim-scouting-widget> ---
 class SimScoutingWidget extends HTMLElement {
   constructor() {
     super();
@@ -166,266 +191,213 @@ class SimScoutingWidget extends HTMLElement {
 
   connectedCallback() {
     this.render();
-    
-    // Use SDK to track page view
-    const campaignId = this.getAttribute('campaign-id');
-    window.SimScouting.trackPageView(campaignId);
+    this.setupListeners();
   }
 
   render() {
-    this.shadowRoot.innerHTML = `
+    // Styles (Tailwind-like minimal setup)
+    const style = `
       <style>
         :host {
           display: block;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-family: 'Inter', sans-serif;
           max-width: 400px;
           margin: 0 auto;
-          
-          /* Dark Mode Variables */
-          --bg-color: #1a1a1a;
-          --input-bg: #111111;
-          --text-color: #ffffff;
-          --text-muted: #a0aec0;
-          --border-color: #333333;
-          --primary-color: #00b4d8; /* SIM Cyan */
-          --primary-hover: #0096b4;
-          --success-bg: #064e3b;
-          --success-border: #059669;
-          --success-text: #a7f3d0;
         }
-
-        /* Container Card */
-        #widget-container {
-          background: var(--bg-color);
-          padding: 2rem;
-          border-radius: 16px;
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-          border: 1px solid #2d2d2d;
-          color: var(--text-color);
+        .card {
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          padding: 24px;
+          border: 1px solid #e5e7eb;
         }
-
-        h2 {
-          text-align: center;
-          color: var(--text-color);
-          margin-top: 0;
-          margin-bottom: 1.5rem;
-          font-size: 1.5rem;
-          font-weight: 700;
-          letter-spacing: -0.025em;
+        .title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 0.5rem;
         }
-
-        form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.25rem;
-        }
-
-        .input-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        label {
-          font-weight: 500;
-          color: var(--text-muted);
+        .subtitle {
           font-size: 0.875rem;
-          margin-left: 4px;
+          color: #6b7280;
+          margin-bottom: 1.5rem;
         }
-
+        .input-group {
+          margin-bottom: 1rem;
+        }
+        label {
+          display: block;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+          margin-bottom: 0.25rem;
+        }
         input {
           width: 100%;
-          padding: 0.875rem 1rem;
-          border: 1px solid var(--border-color);
-          border-radius: 10px;
-          font-size: 1rem;
-          color: var(--text-color);
-          background-color: var(--input-bg);
-          transition: all 0.2s ease;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px;
+          border: 1px solid #d1d5db;
+          font-size: 0.875rem;
           box-sizing: border-box;
-          outline: none;
         }
-
         input:focus {
-          border-color: var(--primary-color);
-          box-shadow: 0 0 0 4px rgba(0, 180, 216, 0.15);
-          background-color: #000;
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-
-        input::placeholder {
-          color: #555;
-        }
-
         button {
           width: 100%;
-          background: linear-gradient(135deg, var(--primary-color) 0%, #0096b4 100%);
+          background-color: #2563eb;
           color: white;
+          font-weight: 600;
+          padding: 0.75rem 1rem;
+          border-radius: 6px;
           border: none;
-          padding: 1rem;
-          font-size: 1rem;
-          border-radius: 10px;
           cursor: pointer;
-          font-weight: 700;
-          transition: transform 0.1s, box-shadow 0.2s;
-          margin-top: 0.5rem;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          box-shadow: 0 4px 6px rgba(0, 180, 216, 0.2);
+          transition: background-color 0.2s;
         }
-
         button:hover {
-          box-shadow: 0 6px 12px rgba(0, 180, 216, 0.3);
-          transform: translateY(-1px);
+          background-color: #1d4ed8;
         }
-
-        button:active {
-          transform: translateY(1px);
-        }
-
         button:disabled {
-          background: #444;
+          background-color: #9ca3af;
           cursor: not-allowed;
-          box-shadow: none;
-          color: #888;
         }
-
         .success-message {
-          text-align: center;
           display: none;
-          padding: 1.5rem;
-          background: var(--success-bg);
-          border: 1px solid var(--success-border);
-          border-radius: 10px;
-          color: var(--success-text);
-          animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .success-message h3 {
-          margin: 0 0 0.5rem 0;
-          font-size: 1.25rem;
-          color: white;
-        }
-
-        .success-message p {
-          margin: 0;
-          font-size: 0.95rem;
-          opacity: 0.9;
-        }
-
-        .error-message {
-          color: #ef4444;
-          font-size: 0.875rem;
           text-align: center;
-          margin-top: 0.5rem;
-          display: none;
+          color: #059669;
         }
-
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
+        .scout-info {
+           margin-top: 1rem;
+           font-size: 0.75rem;
+           color: #9ca3af;
+           text-align: center;
         }
       </style>
-      
-      <div id="widget-container">
-        <h2>Gratis Training sichern</h2>
-        <form id="scout-form">
-          <div class="input-group">
-            <label for="first_name">Vorname</label>
-            <input type="text" id="first_name" name="first_name" required placeholder="Max">
-          </div>
-          <div class="input-group">
-            <label for="last_name">Nachname</label>
-            <input type="text" id="last_name" name="last_name" required placeholder="Mustermann">
-          </div>
-          <div class="input-group">
-            <label for="phone">Telefon</label>
-            <input type="tel" id="phone" name="phone" required placeholder="Deine Nummer">
-          </div>
-          <button type="submit" id="submit-btn">Jetzt Starten</button>
-          <div class="error-message" id="error-msg"></div>
-        </form>
-        <div class="success-message" id="success-msg">
-          <h3>Vielen Dank! 🚀</h3>
-          <p>Deine Anfrage ist eingegangen. <br>Wir melden uns bei dir!</p>
+    `;
+
+    this.shadowRoot.innerHTML = `
+      ${style}
+      <div class="card">
+        <div id="form-view">
+          <h2 class="title">Interesse geweckt?</h2>
+          <p class="subtitle">Hinterlasse deine Kontaktdaten und wir melden uns bei dir!</p>
+          
+          <form id="lead-form">
+            <div class="input-group">
+              <label for="fname">Vorname</label>
+              <input type="text" id="fname" name="fname" required placeholder="Max">
+            </div>
+            
+            <div class="input-group">
+              <label for="lname">Nachname</label>
+              <input type="text" id="lname" name="lname" required placeholder="Mustermann">
+            </div>
+            
+            <div class="input-group">
+              <label for="phone">Telefonnummer</label>
+              <input type="tel" id="phone" name="phone" required placeholder="0170 12345678">
+            </div>
+
+            <button type="submit" id="submit-btn">Jetzt absenden</button>
+            <div class="scout-info" id="scout-info"></div>
+          </form>
+        </div>
+
+        <div id="success-view" class="success-message">
+          <h2 class="title">Vielen Dank!</h2>
+          <p class="subtitle">Wir haben deine Daten erhalten und melden uns in Kürze.</p>
+          <svg style="width: 64px; height: 64px; margin: 0 auto; color: #059669;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
         </div>
       </div>
     `;
+    
+    // Check if Scout is referencing
+    const scoutId = window.SimScouting.getScoutId();
+    if (scoutId) {
+        // Optional: Fetch Scout Name via API if you want to display "Recommended by..."
+        // For now just logging or showing ID (debugging)
+        const infoEl = this.shadowRoot.getElementById('scout-info');
+        // infoEl.textContent = `Ref: ${scoutId}`; // Uncomment to show Ref ID in UI
+    }
+  }
 
-    this.shadowRoot.getElementById('scout-form').addEventListener('submit', (e) => this.handleSubmit(e));
+  setupListeners() {
+    const form = this.shadowRoot.getElementById('lead-form');
+    form.addEventListener('submit', (e) => this.handleSubmit(e));
   }
 
   async handleSubmit(e) {
     e.preventDefault();
-    
     const btn = this.shadowRoot.getElementById('submit-btn');
-    const errorMsg = this.shadowRoot.getElementById('error-msg');
-    const form = this.shadowRoot.getElementById('scout-form');
-    // const successMsg = this.shadowRoot.getElementById('success-msg'); // Not used directly, cleared by innerHTML replacement
-
-    btn.disabled = true;
-    const originalBtnText = btn.textContent;
+    const originalText = btn.textContent;
     btn.textContent = 'Sende...';
-    errorMsg.style.display = 'none';
+    btn.disabled = true;
+
+    const fname = this.shadowRoot.getElementById('fname').value;
+    const lname = this.shadowRoot.getElementById('lname').value;
+    const phone = this.shadowRoot.getElementById('phone').value;
+    
+    const scoutId = window.SimScouting.getScoutId();
+    const source = window.SimScouting.getSource();
+    const campaign = window.SimScouting.getCampaign(); // Added Campaign
+
+    // Campaign ID from Supabase? 
+    // Usually, we just insert into 'invites' table. If you have a specific 'campaigns' table (SQL), 
+    // you might need a UUID. 
+    // For this simple setup, we treat 'campaign' in the URL as a text tag, not a foreign key UUID.
+    // If your DB expects a UUID for `campaign_id` column, you must provide it.
+    // However, if we don't have a valid UUID for the campaign, we MUST send null to avoid FK violation.
+    // The text-based campaign name (e.g. 'newsletter') goes into lead_data.
+    
+    // Check if attribute 'campaign-id' is a valid UUID (simple regex check)
+    const campaignIdAttr = this.getAttribute('campaign-id');
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaignIdAttr);
+    const campaignId = isUuid ? campaignIdAttr : null;
+
+    const payload = {
+      campaign_id: campaignId,
+      scout_id: scoutId || null,
+      first_name: fname,
+      last_name: lname,
+      phone: phone,
+      lead_data: { 
+          first_name: fname, 
+          last_name: lname, 
+          phone: phone,
+          source: source || 'direct',
+          campaign: campaign || null // Added Campaign to Payload
+      },
+      status: 'pending'
+    };
 
     try {
-        const formData = new FormData(form);
-        const firstName = formData.get('first_name');
-        const lastName = formData.get('last_name');
-        const phone = formData.get('phone');
-        
-        // 1. Get Campaign ID
-        const campaignId = this.getAttribute('campaign-id');
-
-        // 2. Get Scout ID from SDK
-        let scoutId = window.SimScouting.getScoutId();
-        // 3. Get Source
-        const source = window.SimScouting.getSource();
-        
-        // Debug override for localhost (if no stored ID)
-        if (!scoutId && window.location.hostname === 'localhost') scoutId = '0e13eb93-b8fa-4801-a800-13a4ce596be2';
-
-        const payload = {
-          campaign_id: campaignId || null, 
-          scout_id: scoutId || null,
-          first_name: firstName,
-          last_name: lastName,
-          phone: phone,
-          lead_data: { 
-              first_name: firstName, 
-              last_name: lastName, 
-              phone: phone,
-              source: source || 'direct' 
-          },
-          status: 'pending'
-        };
-
-        const { error } = await this.supabase
+        // 1. Insert into Invites (Leads)
+        const { error } = await window.SimScouting.supabase
             .from('invites')
             .insert(payload);
 
         if (error) throw error;
-        
-        // Also track conversion event
-        await window.SimScouting.trackConversion('lead_form_submit', { campaign_id: campaignId });
 
-        // Force UI update by replacing content
-        const container = this.shadowRoot.getElementById('widget-container');
-        container.innerHTML = `
-            <div style="text-align:center; padding:2rem; color: #a7f3d0;">
-                <h3 style="color:white; margin-bottom:1rem; font-size:1.5rem;">Vielen Dank! 🚀</h3>
-                <p style="font-size:1.1rem; line-height:1.6;">Deine Anfrage ist eingegangen.<br>Wir melden uns bei dir!</p>
-            </div>
-        `;
+        // 2. Track Custom Event
+        await window.SimScouting.trackConversion('lead_form_submit', { 
+            name: `${fname} ${lname}`,
+            source: source,
+            campaign: campaign // Track campaign in event meta too
+        });
+
+        // Show Success
+        this.shadowRoot.getElementById('form-view').style.display = 'none';
+        this.shadowRoot.getElementById('success-view').style.display = 'block';
 
     } catch (err) {
-      console.error('Submission error:', err);
-      
-      errorMsg.textContent = 'Fehler: ' + (err.message || 'Verbindung fehlgeschlagen');
-      errorMsg.style.display = 'block';
-      errorMsg.style.color = 'red';
-      
-      btn.disabled = false;
-      btn.textContent = originalBtnText;
+        console.error('Submission failed', err);
+        alert('Fehler beim Senden. Bitte versuche es später.');
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
   }
 }

@@ -90,3 +90,5 @@ meta_data: {
 
 Dies ermöglicht eine detaillierte Auswertung:
 _"Scout kam über den Winter-Newsletter (Campaign) und hat dann per WhatsApp (Source) geteilt."_
+
+> **Siehe auch:** Details zur Visualisierung im Admin Dashboard findest du in [15. Admin Dashboard v2.1 Features](15_admin_dashboard_features.md).

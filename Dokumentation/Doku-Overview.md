@@ -117,3 +117,11 @@
 - **Integration:** SDK speichert Quelle, Datenbank (`tracking_events`) empfängt beide Werte.
 - **UI:** Anzeige passender Icons im Admin-Dashboard.
 - **Feature:** E-Mail-Teilen-Button in der Scout App + Kampagnen-Tracking.
+
+## 15. Admin Dashboard v2.1 Features
+
+**Ziel:** Erweiterte Analyse und Usability für das Admin-Tool.
+
+- **Sortierung & Filter:** Tabellen sortierbar nach Datum, Name, Kampagne. Live-Filter für Kampagnen.
+- **Detail-Ansichten:** Modals (Popups) für Scout-Details und Kampagnen-Details.
+- **Visualisierung:** Farbige Badges für Kampagnen und Icons für Quellen (WhatsApp, Mail, etc.).

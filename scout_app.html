@@ -175,8 +175,14 @@
 
         // Determine Campaign on Load
         document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            currentCampaign = params.get('campaign') || params.get('source') || params.get('utm_campaign');
+            const urlParams = new URLSearchParams(window.location.search);
+            const hashParams = new URLSearchParams(window.location.hash.replace(/^#\/?/, ''));
+            
+            const getParam = (key) => urlParams.get(key) || hashParams.get(key);
+
+            // Robust check
+            currentCampaign = getParam('campaign') || getParam('utm_campaign') || getParam('Campaign');
+            
             if (currentCampaign) {
                 console.log('Campaign detected:', currentCampaign);
             }
@@ -203,7 +209,7 @@
             }
         }
 
-        // App Logic
+
         async function initApp() {
             // Get Scout ID from URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -283,7 +289,12 @@
                 console.warn('Could not load dynamic campaign settings', err);
             }
 
-            const referralLink = `${landingPageUrl}?ref=${scoutId}`;
+            let referralLink = `${landingPageUrl}?ref=${scoutId}`;
+
+            // NEW: Append campaign if available
+            if (currentCampaign) {
+                referralLink += `&campaign=${currentCampaign}`;
+            }
 
             // 1. WhatsApp Link
             const whatsappRefLink = `${referralLink}&source=wa`;
@@ -340,7 +351,11 @@
 
             // NEW: Save Link Logic (Sticky Feature)
             // Save the Dashboard URL (this page) so the Scout can return later
-            const dashboardLink = window.location.origin + window.location.pathname + '?id=' + scoutId;
+            let dashboardLink = window.location.origin + window.location.pathname + '?id=' + scoutId;
+            if (currentCampaign) {
+                dashboardLink += `&campaign=${currentCampaign}`;
+            }
+            
             const saveText = `Mein Link zum Scout-Dashboard (hier klicken zum Teilen): ${dashboardLink} \n(Am besten diese Nachricht an dich selbst schicken/speichern!)`;
             const saveUrl = `https://wa.me/?text=${encodeURIComponent(saveText)}`;
             const saveBtn = document.getElementById('save-btn');
