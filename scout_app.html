@@ -31,6 +31,36 @@
                 <span class="text-sm opacity-60">Dein Code ist wertvoll. Teile ihn jetzt.</span>
             </p>
 
+            <!-- STATS CARD (New Feature) -->
+            <!-- STATS CARD (New Feature) -->
+            <!-- STATS CARD (New Feature) -->
+            <div id="stats-loader" class="mb-8 text-center text-gray-500 animate-pulse">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Lade Statistik...
+            </div>
+
+            <div id="stats-container" class="mb-8 hidden">
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Count -->
+                    <div class="bg-[#111] p-4 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
+                        <span class="text-3xl font-bold text-white" id="stats-count">-</span>
+                        <span class="text-xs text-gray-500 uppercase tracking-wider mt-1">Leads</span>
+                    </div>
+                    <!-- Rank -->
+                    <div class="bg-[#111] p-4 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
+                        <span class="text-xl font-bold text-gray-400" id="stats-rank">-</span>
+                        <span class="text-xs text-gray-500 uppercase tracking-wider mt-1">Status</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EMPTY STATE (No leads yet) -->
+            <div id="stats-empty" class="mb-8 hidden">
+                <div class="bg-gray-800/30 p-4 rounded-xl border border-gray-800 text-gray-400 text-sm">
+                    Du hast noch keine Freunde eingeladen. <br>
+                    <span class="text-white font-bold">Teile deinen Link und werde zur Legende! 🚀</span>
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="flex flex-col gap-4">
                 
@@ -45,6 +75,12 @@
                     <i id="copy-icon" class="fas fa-copy text-xl mr-3 text-[#00b4d8] group-hover:text-white transition-colors"></i>
                     <span id="copy-text" class="text-lg">Link kopieren</span>
                 </button>
+
+                <!-- Save Link Button (Sticky Feature) -->
+                <a id="save-btn" href="#" target="_blank" class="mt-2 text-gray-500 hover:text-gray-300 border-2 border-gray-800 hover:border-gray-700 hover:bg-white/5 font-semibold py-3 px-6 rounded-xl flex items-center justify-center transition-all group">
+                    <i class="fas fa-save text-lg mr-3 group-hover:scale-110 transition-transform"></i>
+                    <span>Link für mich sichern 💾</span>
+                </a>
             
             </div>
             
@@ -61,10 +97,17 @@
             </p>
 
             <form id="register-form" class="text-left flex flex-col gap-4">
-                <div>
-                    <label class="block text-gray-500 text-sm font-bold mb-1 ml-1">Name</label>
-                    <input type="text" id="reg-name" required placeholder="Dein Name" 
-                        class="w-full p-3 bg-[#111111] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#00b4d8] focus:ring-1 focus:ring-[#00b4d8] transition-all">
+                <div class="flex gap-2">
+                    <div class="w-1/2">
+                        <label class="block text-gray-500 text-sm font-bold mb-1 ml-1">Vorname</label>
+                        <input type="text" id="reg-first-name" required placeholder="Max" 
+                            class="w-full p-3 bg-[#111111] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#00b4d8] focus:ring-1 focus:ring-[#00b4d8] transition-all">
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-gray-500 text-sm font-bold mb-1 ml-1">Nachname</label>
+                        <input type="text" id="reg-last-name" required placeholder="Mustermann" 
+                            class="w-full p-3 bg-[#111111] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#00b4d8] focus:ring-1 focus:ring-[#00b4d8] transition-all">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-gray-500 text-sm font-bold mb-1 ml-1">E-Mail</label>
@@ -90,21 +133,51 @@
     </div>
 
     <div class="mt-8 opacity-30">
-        <img src="https://studios-in-motion.de/assets/images/logo-light.svg" alt="Studios in Motion" class="h-6 mx-auto invert grayscale" onerror="this.style.display='none'">
+        <img src="https://www.studios-in-motion.de/images/logo_studiosinmotion_2021_rahmen.svg" alt="Studios in Motion" class="h-6 mx-auto invert grayscale" onerror="this.style.display='none'">
     </div>
 
     <!-- SUPABASE & APP LOGIC -->
     <script type="module">
-        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        // import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
         // CONFIG
-        const LANDING_PAGE_URL = 'https://simscouting.studios-in-motion.de/test_page.html';
+        const FALLBACK_LANDING_PAGE_URL = 'https://simscouting.studios-in-motion.de/test_page.html';
         const SUPABASE_URL = 'https://rmtyebyzitzgkplxvzxg.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_2qDg3Jssg_fTPdXl_3Ku-g_1yOkdJ3i';
         const TENANT_ID = '79a37c78-7bdf-45e4-a631-fb47926d054d';
 
+        // Debug Logger
+        const debugArea = document.getElementById('debug-link');
+        function logDebug(msg) {
+            console.log(msg);
+            // debugArea.innerHTML += `<div>${msg}</div>`; // Uncomment for extreme debugging
+        }
+
         // Init Supabase
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase;
+        try {
+            supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+            logDebug('Supabase Client Initialized');
+        } catch (e) {
+            logDebug('Supabase Init Error: ' + e.message);
+            document.getElementById('stats-loader').textContent = 'Fehler: Supabase Konfiguration';
+        }
+
+        // Tracking Helper
+        async function trackEvent(type, scoutId, meta = {}) {
+            if (!scoutId) return;
+            try {
+                await supabase.from('tracking_events').insert({
+                    scout_id: scoutId,
+                    event_type: type,
+                    meta_data: meta
+                });
+                logDebug('Tracked: ' + type);
+            } catch (e) {
+                console.warn('Tracking failed:', e);
+            }
+        }
 
         // App Logic
         async function initApp() {
@@ -121,10 +194,13 @@
             if (scoutId) {
                 // SHOW DASHBOARD
                 viewDashboard.classList.remove('hidden');
-                initDashboard(scoutId);
+                await initDashboard(scoutId); // Wait for dashboard init
                 
                 // Optional: Fetch Scout Name
                 fetchScoutName(scoutId);
+                
+                // NEW: Load Stats (Parallel not waiting for Dashboard)
+                loadStats(scoutId);
             } else {
                 // SHOW REGISTRATION
                 viewRegister.classList.remove('hidden');
@@ -134,25 +210,65 @@
 
         async function fetchScoutName(id) {
             try {
+                // logDebug('Fetching name for ' + id);
+                // V2: Fetch first_name instead of name
                 const { data, error } = await supabase
                     .from('scouts')
-                    .select('name')
+                    .select('first_name')
                     .eq('id', id)
                     .single();
                 
-                if (data && data.name) {
-                    document.getElementById('scout-name').textContent = data.name;
+                if (error) throw error;
+
+                if (data && data.first_name) {
+                    document.getElementById('scout-name').textContent = data.first_name;
+                    // logDebug('Name loaded: ' + data.first_name);
                 }
-            } catch (e) { console.log('Could not fetch name', e); }
+            } catch (e) { 
+                console.log('Could not fetch name', e); 
+                // document.getElementById('scout-name').textContent = 'Fehler: ' + e.message;
+            }
         }
 
-        function initDashboard(scoutId) {
-            const referralLink = `${LANDING_PAGE_URL}?ref=${scoutId}`;
-            const whatsappText = `Hey, ich lade dich zu 7 Tagen Training ein! Hol dir hier deinen Pass: ${referralLink}`;
+        async function initDashboard(scoutId) {
+            
+            // Base URL for invite link - Default to fallback
+            let landingPageUrl = FALLBACK_LANDING_PAGE_URL;
+            let whatsappTextTemplate = `Hey, ich lade dich zu 7 Tagen Training ein! Hol dir hier deinen Pass: {{link}}`;
+
+            // Fetch dynamic configuration from Campaign
+            try {
+                const { data: campaigns, error } = await supabase
+                    .from('campaigns')
+                    .select('scouting_text, landingpage_url')
+                    .eq('tenant_id', TENANT_ID)
+                    .eq('status', 'active') 
+                    .limit(1);
+
+                if (campaigns && campaigns.length > 0) {
+                    const campaign = campaigns[0];
+                    if (campaign.scouting_text) {
+                         // Fix: Handle literal "\n" from DB text fields as actual newlines for WhatsApp
+                        whatsappTextTemplate = campaign.scouting_text.replace(/\\n/g, '\n');
+                    }
+                    if (campaign.landingpage_url) {
+                        landingPageUrl = campaign.landingpage_url;
+                    }
+                }
+            } catch (err) {
+                console.warn('Could not load dynamic campaign settings', err);
+            }
+
+            const referralLink = `${landingPageUrl}?ref=${scoutId}`;
+            const whatsappText = whatsappTextTemplate.replace('{{link}}', referralLink);
+            
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
 
             // Setup Buttons
-            document.getElementById('whatsapp-btn').href = whatsappUrl;
+            const whatsappBtn = document.getElementById('whatsapp-btn');
+            whatsappBtn.href = whatsappUrl;
+            whatsappBtn.onclick = () => trackEvent('share_whatsapp', scoutId);
+            
             // document.getElementById('debug-link').textContent = referralLink; // Optional Debug
 
             const copyBtn = document.getElementById('copy-btn');
@@ -160,6 +276,7 @@
             const copyIcon = document.getElementById('copy-icon');
 
             copyBtn.onclick = () => {
+                trackEvent('share_copy', scoutId);
                 navigator.clipboard.writeText(referralLink).then(() => {
                     showToast();
                     
@@ -178,8 +295,85 @@
                 }).catch(err => {
                     console.error('Copy failed', err);
                     alert('Konnte Link nicht kopieren: ' + referralLink);
+                    alert('Falls das Kopieren nicht geht (z.B. in In-App Browsern), kopiere den Link bitte manuell:\n' + referralLink);
                 });
             };
+
+            // NEW: Save Link Logic (Sticky Feature)
+            // Save the Dashboard URL (this page) so the Scout can return later
+            const dashboardLink = window.location.origin + window.location.pathname + '?id=' + scoutId;
+            const saveText = `Mein Link zum Scout-Dashboard (hier klicken zum Teilen): ${dashboardLink} \n(Am besten diese Nachricht an dich selbst schicken/speichern!)`;
+            const saveUrl = `https://wa.me/?text=${encodeURIComponent(saveText)}`;
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.href = saveUrl;
+            saveBtn.onclick = () => trackEvent('save_link', scoutId);
+        }
+
+        // NEW: Load Live Stats
+        async function loadStats(scoutId) {
+            const loader = document.getElementById('stats-loader');
+            const container = document.getElementById('stats-container');
+            const emptyState = document.getElementById('stats-empty');
+            const debugLog = document.getElementById('debug-link'); // reuse debug area
+
+            try {
+                // console.log('Loading stats for', scoutId);
+                
+                // Count invites for this scout
+                const { count, error } = await supabase
+                    .from('invites')
+                    .select('id', { count: 'exact', head: false }) // ensure GET request
+                    .eq('scout_id', scoutId);
+
+                if (error) {
+                    // check for potential RLS 403 or network error
+                    logDebug(error.message);
+                    throw error;
+                }
+
+                console.log('Stats loaded:', count);
+
+                // Hide loader
+                loader.classList.add('hidden');
+
+                // Elements
+                const countEl = document.getElementById('stats-count');
+                const rankEl = document.getElementById('stats-rank');
+
+                // Logic
+                if (count === null || count === 0) {
+                    container.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                } else {
+                    container.classList.remove('hidden');
+                    emptyState.classList.add('hidden');
+                    
+                    countEl.textContent = count;
+
+                    // Determine Rank
+                    let rankText = 'Rookie 🌱';
+                    let rankClass = 'text-gray-400';
+
+                    if (count >= 10) {
+                        rankText = 'Legende 👑';
+                        rankClass = 'text-yellow-400';
+                    } else if (count >= 3) {
+                        rankText = 'Influencer 🚀';
+                        rankClass = 'text-indigo-400';
+                    }
+
+                    rankEl.textContent = rankText;
+                    rankEl.className = `text-xl font-bold ${rankClass}`;
+                }
+
+            } catch (err) {
+                console.error('Error loading stats:', err);
+                // Show Empty State on Error as fallback, but log it
+                loader.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                // Optional: Show error in debug area
+                // debugLog.innerText = 'Stats Error: ' + err.message;
+            }
         }
 
         function initRegistration() {
@@ -193,7 +387,8 @@
                 btn.textContent = 'Erstelle Account...';
                 errorMsg.classList.add('hidden');
 
-                const name = document.getElementById('reg-name').value;
+                const firstName = document.getElementById('reg-first-name').value;
+                const lastName = document.getElementById('reg-last-name').value;
                 const email = document.getElementById('reg-email').value;
 
                 try {
@@ -202,7 +397,8 @@
                         .from('scouts')
                         .insert({
                             tenant_id: TENANT_ID,
-                            name: name,
+                            first_name: firstName,
+                            last_name: lastName,
                             email: email,
                             stats: {} // Empty JSONB
                         })

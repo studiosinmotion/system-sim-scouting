@@ -1,0 +1,361 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.I.M. Scouting - Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen">
+
+    <!-- Auth Overlay -->
+    <div id="auth-layer" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
+        <div class="text-center">
+            <i class="fa-solid fa-lock text-4xl text-slate-500 mb-4"></i>
+            <p>Authentifizierung...</p>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until auth) -->
+    <div id="dashboard" class="hidden p-6 max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-3">
+                <img src="https://www.studios-in-motion.de/images/logo_studiosinmotion_2021_rahmen.svg" alt="Logo" class="h-8">
+                <h1 class="text-2xl font-bold text-slate-100">Scouting Dashboard</h1>
+            </div>
+            <button onclick="location.reload()" class="p-2 hover:bg-slate-800 rounded-lg transition">
+                <i class="fa-solid fa-rotate-right text-slate-400"></i>
+            </button>
+        </header>
+
+        <!-- KPI Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Scouts -->
+            <div class="glass-panel p-6 rounded-xl relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-users text-6xl text-blue-500"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Total Scouts</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-scouts">-</h3>
+                <div class="mt-2 text-xs text-blue-400">Registrierte Partner</div>
+            </div>
+
+            <!-- Total Leads -->
+            <div class="glass-panel p-6 rounded-xl relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-user-plus text-6xl text-emerald-500"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Total Leads</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-leads">-</h3>
+                <div class="mt-2 text-xs text-emerald-400">Generierte Kontakte</div>
+            </div>
+
+            <!-- Traffic -->
+            <div class="glass-panel p-6 rounded-xl relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-eye text-6xl text-indigo-500"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Traffic (Views)</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-traffic">-</h3>
+                <div class="mt-2 text-xs text-indigo-400">Seitenaufrufe</div>
+            </div>
+
+            <!-- Conversion Rate -->
+            <div class="glass-panel p-6 rounded-xl relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-chart-pie text-6xl text-amber-500"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Conversion Rate</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-conversion">- %</h3>
+                <div class="mt-2 text-xs text-amber-400">Leads / Views</div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Leaderboard (2 Cols) -->
+            <div class="lg:col-span-2 glass-panel rounded-xl p-6">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-yellow-400"></i> Top Scouts
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-slate-400 text-sm border-b border-slate-700">
+                                <th class="p-3">#</th>
+                                <th class="p-3">Scout Name</th>
+                                <th class="p-3 text-right">Leads</th>
+                                <th class="p-3 text-right">Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body" class="text-sm">
+                            <tr><td colspan="4" class="p-4 text-center text-slate-500">Lade Daten...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Activity Feed (1 Col) -->
+            <div class="glass-panel rounded-xl p-6">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-blue-400"></i> Live Activity
+                </h3>
+                <div id="activity-feed" class="flex flex-col gap-4 max-h-[500px] overflow-y-auto pr-2">
+                    <div class="text-center text-slate-500 py-4">Lade Feed...</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Debug / Footer -->
+        <div class="mt-12 text-center text-slate-600 text-sm">
+            Admin Dashboard v2.0 • Data based on SIM-Scouting Supabase
+            <div id="debug-area" class="mt-2 font-mono text-xs text-red-900"></div>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const SUPABASE_URL = 'https://rmtyebyzitzgkplxvzxg.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_2qDg3Jssg_fTPdXl_3Ku-g_1yOkdJ3i';
+        const TENANT_ID = '79a37c78-7bdf-45e4-a631-fb47926d054d';
+
+        // Init Supabase
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- AUTH ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const pass = prompt('Bitte Passwort eingeben:');
+            if (pass === 'admin123') {
+                document.getElementById('auth-layer').style.display = 'none';
+                document.getElementById('dashboard').classList.remove('hidden');
+                initDashboard();
+            } else {
+                alert('Falsches Passwort!');
+                document.getElementById('auth-layer').innerHTML = '<p class="text-red-500">Zugriff verweigert.</p>';
+            }
+        });
+
+        // --- DATA LOGIC ---
+        async function initDashboard() {
+            try {
+                // 1. Fetch Scouts (Reference Data)
+                const { data: scouts, error: errScouts } = await supabase
+                    .from('scouts')
+                    .select('id, first_name, last_name')
+                    .eq('tenant_id', TENANT_ID);
+                
+                if (errScouts) throw errScouts;
+
+                const scoutMap = {}; // ID -> Name
+                const scoutIds = [];
+                scouts.forEach(s => {
+                    scoutMap[s.id] = `${s.first_name} ${s.last_name}`;
+                    scoutIds.push(s.id);
+                });
+
+                document.getElementById('kpi-scouts').textContent = scouts.length;
+
+                // 2. Fetch Invites (Leads)
+                // Note: Filter by valid scout IDs to implicitly filter by tenant
+                const { data: invites, error: errInvites } = await supabase
+                    .from('invites')
+                    .select('id, scout_id, created_at, first_name, last_name')
+                    .in('scout_id', scoutIds);
+
+                if (errInvites) throw errInvites;
+
+                const totalLeads = invites.length;
+                document.getElementById('kpi-leads').textContent = totalLeads;
+
+                // 3. Fetch Tracking Events (Traffic)
+                const { count: trafficCount, error: errTraffic } = await supabase
+                    .from('tracking_events')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('event_type', 'page_view')
+                    .in('scout_id', scoutIds);
+                
+                if (errTraffic) throw errTraffic;
+
+                document.getElementById('kpi-traffic').textContent = trafficCount;
+
+                // 4. Conversion Rate
+                // Fix for Legacy Data: If we have leads but no tracking events yet, 
+                // assume at least 1 view per lead to avoid 0% or >100% artifacts.
+                const effectiveTraffic = Math.max(trafficCount, totalLeads);
+                
+                let conversion = 0;
+                if (effectiveTraffic > 0) {
+                    conversion = (totalLeads / effectiveTraffic) * 100;
+                }
+                document.getElementById('kpi-conversion').textContent = conversion.toFixed(1) + '%';
+
+
+                // --- LEADERBOARD LOGIC ---
+                // Count invites per scout
+                const leadCounts = {};
+                invites.forEach(inv => {
+                    const sid = inv.scout_id;
+                    leadCounts[sid] = (leadCounts[sid] || 0) + 1;
+                });
+
+                // Convert to array and sort
+                const leaderboard = Object.keys(leadCounts).map(sid => ({
+                    id: sid,
+                    name: scoutMap[sid] || 'Unbekannt',
+                    leads: leadCounts[sid]
+                })).sort((a, b) => b.leads - a.leads).slice(0, 5); // Top 5
+
+                renderLeaderboard(leaderboard, totalLeads);
+
+
+                // --- ACTIVITY FEED LOGIC ---
+                // Fetch recent events (mixed: invites and tracked interactions)
+                
+                // Tracked Events (Limit 20)
+                const { data: recentEvents, error: errRecent } = await supabase
+                    .from('tracking_events')
+                    .select('*')
+                    .in('scout_id', scoutIds)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
+                // Combine with Invites (already fetched, but we need date)
+                // We'll just mix the recentEvents and the Invites array in JS
+                
+                const feedItems = [];
+
+                // Add Leads (Invites)
+                invites.forEach(inv => {
+                    feedItems.push({
+                        type: 'lead',
+                        timestamp: new Date(inv.created_at),
+                        scout: scoutMap[inv.scout_id] || 'Unbekannt',
+                        details: `Neuer Lead: ${inv.first_name || 'Unbekannt'} ${inv.last_name || ''}`
+                    });
+                });
+
+                // Add Tracking Events
+                if (recentEvents) {
+                    recentEvents.forEach(evt => {
+                        let label = 'Interaktion';
+                        let icon = 'fa-bolt';
+                        
+                        if (evt.event_type === 'share_whatsapp') { label = 'Hat geteilt (WhatsApp)'; icon = 'fa-whatsapp'; }
+                        if (evt.event_type === 'share_copy') { label = 'Hat Link kopiert'; icon = 'fa-copy'; }
+                        if (evt.event_type === 'save_link') { label = 'Hat Dashboard gespeichert'; icon = 'fa-floppy-disk'; }
+                        if (evt.event_type === 'page_view') { label = 'Seitenaufruf'; icon = 'fa-eye'; }
+
+                        feedItems.push({
+                            type: 'event',
+                            timestamp: new Date(evt.created_at),
+                            scout: scoutMap[evt.scout_id] || 'Unbekannt',
+                            details: label,
+                            icon: icon
+                        });
+                    });
+                }
+
+                // Sort by time desc
+                feedItems.sort((a, b) => b.timestamp - a.timestamp);
+                const topFeed = feedItems.slice(0, 15); // Show top 15
+
+                renderFeed(topFeed);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('debug-area').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        function renderLeaderboard(data, totalLeads) {
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Noch keine Daten</td></tr>';
+                return;
+            }
+
+            data.forEach((item, index) => {
+                let badge = '';
+                if (index === 0) badge = '🥇';
+                if (index === 1) badge = '🥈';
+                if (index === 2) badge = '🥉';
+
+                const share = ((item.leads / totalLeads) * 100).toFixed(0);
+
+                const row = `
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition">
+                        <td class="p-4 font-bold text-slate-400">${index + 1}.</td>
+                        <td class="p-4 font-semibold">${badge} ${item.name}</td>
+                        <td class="p-4 text-right font-mono text-blue-400">${item.leads}</td>
+                        <td class="p-4 text-right">
+                            <div class="w-full bg-slate-700 rounded-full h-1.5 mt-2">
+                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${share}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function renderFeed(items) {
+            const container = document.getElementById('activity-feed');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const time = item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                let iconClass = 'fa-solid fa-circle text-slate-600';
+                let bgClass = 'bg-slate-800';
+                let borderClass = 'border-slate-700';
+
+                if (item.type === 'lead') {
+                    iconClass = 'fa-solid fa-fire text-orange-500';
+                    bgClass = 'bg-orange-900/10';
+                    borderClass = 'border-orange-500/20';
+                } else if (item.details.includes('WhatsApp')) {
+                    iconClass = 'fa-brands fa-whatsapp text-green-500';
+                }
+
+                if (item.icon) iconClass = `fa-solid ${item.icon} text-blue-400`;
+                if (item.icon === 'fa-whatsapp') iconClass = `fa-brands fa-whatsapp text-green-400`;
+
+                const el = `
+                    <div class="flex items-start gap-4 p-3 rounded-lg border ${borderClass} ${bgClass}">
+                        <div class="mt-1"><i class="${iconClass}"></i></div>
+                        <div>
+                            <div class="text-xs text-slate-400 mb-0.5">${time} • ${item.scout}</div>
+                            <div class="text-sm font-medium text-slate-200">${item.details}</div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += el;
+            });
+        }
+
+    </script>
+</body>
+</html>

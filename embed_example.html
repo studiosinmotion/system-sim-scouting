@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Beispiel: Scout Registrierung</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        .header h1 { color: #333; }
+        .header p { color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Fitness Studio Homepage</h1>
+        <p>Hier könnte deine normale Webseite stehen.</p>
+        <p>Unten ist das eingebettete Widget:</p>
+    </div>
+
+    <!-- 
+        WIDGET INTEGRATION START 
+        Passen Sie data-target-url an Ihre echte URL an (z.B. https://ihre-domain.de/scout_app.html)
+    -->
+    <script src="scout_reg.js" type="module"></script>
+    
+    <sim-scout-register
+        supabase-url="https://rmtyebyzitzgkplxvzxg.supabase.co"
+        supabase-key="sb_publishable_2qDg3Jssg_fTPdXl_3Ku-g_1yOkdJ3i"
+        tenant-id="79a37c78-7bdf-45e4-a631-fb47926d054d"
+        target-url="https://simscouting.studios-in-motion.de/scout_app.html"
+    ></sim-scout-register>
+
+    <!-- WIDGET INTEGRATION END -->
+
+</body>
+</html>

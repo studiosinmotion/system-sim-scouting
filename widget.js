@@ -1,5 +1,6 @@
 // widget.js
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // Configuration
 const SUPABASE_URL = 'https://rmtyebyzitzgkplxvzxg.supabase.co';
@@ -14,6 +15,28 @@ class SimScoutingWidget extends HTMLElement {
 
   connectedCallback() {
     this.render();
+    this.trackPageView();
+  }
+
+  async trackPageView() {
+    // 1. Get Campaign ID from attribute
+    const campaignId = this.getAttribute('campaign-id');
+    // 2. Get Scout ID from URL parameter "ref"
+    const urlParams = new URLSearchParams(window.location.search);
+    const scoutId = urlParams.get('ref');
+
+    if (scoutId) {
+        try {
+            await this.supabase.from('tracking_events').insert({
+                scout_id: scoutId,
+                event_type: 'page_view',
+                meta_data: { campaign_id: campaignId }
+            });
+            console.log('SIM-WIDGET: Page View Tracked');
+        } catch (e) {
+            console.warn('SIM-WIDGET: Tracking failed', e);
+        }
+    }
   }
 
   render() {
@@ -174,8 +197,13 @@ class SimScoutingWidget extends HTMLElement {
         <h2>Gratis Training sichern</h2>
         <form id="scout-form">
           <div class="input-group">
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" required placeholder="Dein Name">
+          <div class="input-group">
+            <label for="first_name">Vorname</label>
+            <input type="text" id="first_name" name="first_name" required placeholder="Max">
+          </div>
+          <div class="input-group">
+            <label for="last_name">Nachname</label>
+            <input type="text" id="last_name" name="last_name" required placeholder="Mustermann">
           </div>
           <div class="input-group">
             <label for="phone">Telefon</label>
@@ -196,6 +224,7 @@ class SimScoutingWidget extends HTMLElement {
 
   async handleSubmit(e) {
     e.preventDefault();
+    
     const btn = this.shadowRoot.getElementById('submit-btn');
     const errorMsg = this.shadowRoot.getElementById('error-msg');
     const form = this.shadowRoot.getElementById('scout-form');
@@ -206,43 +235,54 @@ class SimScoutingWidget extends HTMLElement {
     btn.textContent = 'Sende...';
     errorMsg.style.display = 'none';
 
-    const formData = new FormData(form);
-    const data = {
-      name: formData.get('name'),
-      phone: formData.get('phone')
-    };
-
-    // 1. Get Campaign ID from attribute
-    const campaignId = this.getAttribute('campaign-id');
-
-    // 2. Get Scout ID from URL parameter "ref"
-    const urlParams = new URLSearchParams(window.location.search);
-    let scoutId = urlParams.get('ref');
-
-    // FALLBACK FOR LOCAL TESTING
-    if (!scoutId && window.location.hostname === 'localhost') {
-        scoutId = '92c31c93-0cfc-4282-864e-42a03e153f8b';
-    }
-
     try {
-      const { error } = await this.supabase
-        .from('invites')
-        .insert({
+        const formData = new FormData(form);
+        const firstName = formData.get('first_name');
+        const lastName = formData.get('last_name');
+        const phone = formData.get('phone');
+        
+        // 1. Get Campaign ID
+        const campaignId = this.getAttribute('campaign-id');
+
+        // 2. Get Scout ID
+        const urlParams = new URLSearchParams(window.location.search);
+        let scoutId = urlParams.get('ref');
+        
+        // Debug override for localhost
+        if (!scoutId && window.location.hostname === 'localhost') scoutId = '0e13eb93-b8fa-4801-a800-13a4ce596be2';
+
+        const payload = {
           campaign_id: campaignId || null, 
           scout_id: scoutId || null,
-          lead_data: data,
+          first_name: firstName,
+          last_name: lastName,
+          phone: phone,
+          lead_data: { first_name: firstName, last_name: lastName, phone: phone },
           status: 'pending'
-        });
+        };
 
-      if (error) throw error;
+        const { error } = await this.supabase
+            .from('invites')
+            .insert(payload);
 
-      form.style.display = 'none';
-      successMsg.style.display = 'block';
+        if (error) throw error;
+
+        // Force UI update by replacing content
+        const container = this.shadowRoot.getElementById('widget-container');
+        container.innerHTML = `
+            <div style="text-align:center; padding:2rem; color: #a7f3d0;">
+                <h3 style="color:white; margin-bottom:1rem; font-size:1.5rem;">Vielen Dank! 🚀</h3>
+                <p style="font-size:1.1rem; line-height:1.6;">Deine Anfrage ist eingegangen.<br>Wir melden uns bei dir!</p>
+            </div>
+        `;
 
     } catch (err) {
       console.error('Submission error:', err);
-      errorMsg.textContent = 'Fehler aufgetreten.';
+      
+      errorMsg.textContent = 'Fehler: ' + (err.message || 'Verbindung fehlgeschlagen');
       errorMsg.style.display = 'block';
+      errorMsg.style.color = 'red';
+      
       btn.disabled = false;
       btn.textContent = originalBtnText;
     }
