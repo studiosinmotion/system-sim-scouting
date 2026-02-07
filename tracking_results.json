@@ -1,0 +1,18 @@
+[
+  {
+    "tablename": "scouts",
+    "policyname": "Allow public read access",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "tablename": "scouts",
+    "policyname": "Allow public insert access",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  }
+]

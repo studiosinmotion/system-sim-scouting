@@ -70,6 +70,12 @@
                     <span class="text-lg">Per WhatsApp teilen</span>
                 </a>
 
+                <!-- Email Button -->
+                <a id="email-btn" href="#" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center transition-all shadow-lg hover:shadow-blue-900/50 group">
+                    <i class="fa-solid fa-envelope text-3xl mr-3 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-lg">Per E-Mail teilen ✉️</span>
+                </a>
+
                 <!-- Copy Link Button -->
                 <button id="copy-btn" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center transition-all shadow-lg border border-gray-700 hover:border-gray-600 group">
                     <i id="copy-icon" class="fas fa-copy text-xl mr-3 text-[#00b4d8] group-hover:text-white transition-colors"></i>
@@ -154,6 +160,9 @@
             // debugArea.innerHTML += `<div>${msg}</div>`; // Uncomment for extreme debugging
         }
 
+        // Global Campaign State
+        let currentCampaign = null;
+
         // Init Supabase
         let supabase;
         try {
@@ -164,9 +173,24 @@
             document.getElementById('stats-loader').textContent = 'Fehler: Supabase Konfiguration';
         }
 
+        // Determine Campaign on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            currentCampaign = params.get('campaign') || params.get('source') || params.get('utm_campaign');
+            if (currentCampaign) {
+                console.log('Campaign detected:', currentCampaign);
+            }
+        });
+
         // Tracking Helper
         async function trackEvent(type, scoutId, meta = {}) {
             if (!scoutId) return;
+            
+            // Enrich with Campaign Data if available
+            if (currentCampaign) {
+                meta.campaign = currentCampaign;
+            }
+
             try {
                 await supabase.from('tracking_events').insert({
                     scout_id: scoutId,
@@ -260,14 +284,28 @@
             }
 
             const referralLink = `${landingPageUrl}?ref=${scoutId}`;
-            const whatsappText = whatsappTextTemplate.replace('{{link}}', referralLink);
-            
+
+            // 1. WhatsApp Link
+            const whatsappRefLink = `${referralLink}&source=wa`;
+            // Note: whatsappTextTemplate is defined above
+            const whatsappText = whatsappTextTemplate.replace('{{link}}', whatsappRefLink);
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+
+            // 2. Email Link
+            const emailRefLink = `${referralLink}&source=em`;
+            const emailSubject = encodeURIComponent('Ich habe ein tolles Angebot für dich gefunden! 🎁');
+            const emailBody = encodeURIComponent('Hallo,\n\nich bin gerade auf dieses Angebot gestoßen und musste sofort an dich denken.\n\nSchau dir das mal an: ' + emailRefLink + '\n\nLiebe Grüße!');
+            const emailUrl = `mailto:?subject=${emailSubject}&body=${emailBody}`;
 
             // Setup Buttons
             const whatsappBtn = document.getElementById('whatsapp-btn');
             whatsappBtn.href = whatsappUrl;
-            whatsappBtn.onclick = () => trackEvent('share_whatsapp', scoutId);
+            whatsappBtn.onclick = () => trackEvent('share_whatsapp', scoutId, { source: 'wa' });
+
+            // New: Email Button Logic
+            const emailBtn = document.getElementById('email-btn');
+            emailBtn.href = emailUrl;
+            emailBtn.onclick = () => trackEvent('share_email', scoutId, { source: 'em' });
             
             // document.getElementById('debug-link').textContent = referralLink; // Optional Debug
 
@@ -276,8 +314,10 @@
             const copyIcon = document.getElementById('copy-icon');
 
             copyBtn.onclick = () => {
-                trackEvent('share_copy', scoutId);
-                navigator.clipboard.writeText(referralLink).then(() => {
+                trackEvent('share_copy', scoutId, { source: 'cp' });
+                // Copy Link with Source
+                const copyRefLink = `${referralLink}&source=cp`;
+                navigator.clipboard.writeText(copyRefLink).then(() => {
                     showToast();
                     
                     // Button Animation
@@ -291,7 +331,6 @@
                         copyIcon.classList.remove('fa-check', 'text-green-400');
                         copyIcon.classList.add('fa-copy', 'text-[#00b4d8]');
                     }, 2000);
-
                 }).catch(err => {
                     console.error('Copy failed', err);
                     alert('Konnte Link nicht kopieren: ' + referralLink);
@@ -306,7 +345,7 @@
             const saveUrl = `https://wa.me/?text=${encodeURIComponent(saveText)}`;
             const saveBtn = document.getElementById('save-btn');
             saveBtn.href = saveUrl;
-            saveBtn.onclick = () => trackEvent('save_link', scoutId);
+            saveBtn.onclick = () => trackEvent('save_link', scoutId, { source: 'save' });
         }
 
         // NEW: Load Live Stats

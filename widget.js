@@ -1,42 +1,175 @@
 // widget.js
-// import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // Configuration
 const SUPABASE_URL = 'https://rmtyebyzitzgkplxvzxg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_2qDg3Jssg_fTPdXl_3Ku-g_1yOkdJ3i';
 
+/**
+ * Universal Tracking SDK for SIM-Scouting.
+ * Handles scout ID persistence, conversion tracking, and hidden field population.
+ * Accessible globally via `window.SimScouting`.
+ */
+class SimScoutingSDK {
+  /**
+   * Initializes the SDK.
+   * Checks URL parameters for scout IDs and persists them to localStorage.
+   */
+  constructor() {
+    this.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    this.storageKeyId = 'sim_scout_id';
+    this.storageKeyTs = 'sim_scout_ts';
+    
+    this.init();
+  }
+
+  /**
+   * Internal initialization logic.
+   * Parses URL parameters ('ref', 'scout_id', 'referrer') and saves valid IDs.
+   * Updates the timestamp on every visit if an ID is present or found.
+   * @private
+   */
+  init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const newScoutId = urlParams.get('ref') || urlParams.get('scout_id') || urlParams.get('referrer');
+    const newSource = urlParams.get('source');
+
+    if (newScoutId) {
+      // New ID found in URL -> Save/Overwrite
+      localStorage.setItem(this.storageKeyId, newScoutId);
+      localStorage.setItem(this.storageKeyTs, Date.now().toString());
+      console.log('SIM-SDK: New Scout ID saved:', newScoutId);
+    } else if (this.getScoutId()) {
+      // Existing ID found -> Refresh Timestamp
+      localStorage.setItem(this.storageKeyTs, Date.now().toString());
+      console.log('SIM-SDK: Existing Scout ID active:', this.getScoutId());
+    }
+
+    if (newSource) {
+      localStorage.setItem('sim_scout_source', newSource);
+      console.log('SIM-SDK: Source saved:', newSource);
+    }
+  }
+
+  /**
+   * Retrieves the currently stored Scout ID.
+   * @returns {string|null} The Scout ID from localStorage, or null if not found.
+   */
+  getScoutId() {
+    return localStorage.getItem(this.storageKeyId);
+  }
+
+  /**
+   * Retrieves the currently stored Source.
+   * @returns {string|null} 
+   */
+  getSource() {
+      return localStorage.getItem('sim_scout_source'); // Key matches what was used in init()
+  }
+
+  /**
+   * Populates hidden input fields with the stored Scout ID.
+   * Useful for integrating with third-party forms.
+   * @param {string} selector - The CSS selector to find input fields (e.g., '.sim-ref-id').
+   * @returns {number} The number of fields updated.
+   */
+  fillHiddenFields(selector) {
+    const scoutId = this.getScoutId();
+    if (!scoutId) return 0;
+
+    const inputs = document.querySelectorAll(selector);
+    inputs.forEach(input => {
+      if (input.tagName === 'INPUT') {
+        input.value = scoutId;
+      }
+    });
+
+    console.log(`SIM-SDK: Updated ${inputs.length} hidden fields.`);
+    return inputs.length;
+  }
+
+  /**
+   * Tracks a conversion event (e.g., form submission, purchase).
+   * Sends data to the 'tracking_events' table in Supabase.
+   * @param {string} conversionName - The name of the conversion event (e.g., 'lead_submission', 'checkout').
+   * @param {object} [additionalMeta={}] - Optional metadata to store with the event.
+   * @returns {Promise<object>} The result of the Supabase insert operation.
+   */
+  async trackConversion(conversionName, additionalMeta = {}) {
+    const scoutId = this.getScoutId();
+    
+    // Even if no scoutId, we might want to track organic conversions if requirements change.
+    // But currently, the system focuses on attributed conversions.
+    
+    const payload = {
+      scout_id: scoutId || null, // Null allowed for organic conversions (visible via recent RLS fix)
+      event_type: 'conversion',
+      meta_data: { 
+        conversion_name: conversionName,
+        ...additionalMeta 
+      }
+    };
+
+    try {
+      const { data, error } = await this.supabase
+        .from('tracking_events')
+        .insert(payload)
+        .select();
+
+      if (error) throw error;
+      
+      console.log(`SIM-SDK: Conversion '${conversionName}' tracked.`, data);
+      return { success: true, data };
+    } catch (err) {
+      console.error('SIM-SDK: Conversion tracking failed', err);
+      return { success: false, error: err };
+    }
+  }
+  
+  /**
+   * Internal helper to track generic page views.
+   * @param {string} [campaignId] - Optional campaign ID.
+   * @returns {Promise<void>}
+   */
+  async trackPageView(campaignId = null) {
+      const scoutId = this.getScoutId();
+      // Track page view even if organic (scoutId is null)
+      
+      try {
+          await this.supabase.from('tracking_events').insert({
+              scout_id: scoutId || null,
+              event_type: 'page_view',
+              meta_data: { campaign_id: campaignId }
+          });
+          console.log('SIM-SDK: Page View Tracked');
+      } catch (e) {
+          console.warn('SIM-SDK: Tracking failed', e);
+      }
+  }
+}
+
+// Instantiate and expose globally
+window.SimScouting = new SimScoutingSDK();
+
+
+/**
+ * Web Component: <sim-scouting-widget>
+ * Displays the lead capture form and handles submission.
+ * Uses window.SimScouting for tracking logic.
+ */
 class SimScoutingWidget extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    this.supabase = window.SimScouting.supabase; // Reuse client from SDK
   }
 
   connectedCallback() {
     this.render();
-    this.trackPageView();
-  }
-
-  async trackPageView() {
-    // 1. Get Campaign ID from attribute
+    
+    // Use SDK to track page view
     const campaignId = this.getAttribute('campaign-id');
-    // 2. Get Scout ID from URL parameter "ref"
-    const urlParams = new URLSearchParams(window.location.search);
-    const scoutId = urlParams.get('ref');
-
-    if (scoutId) {
-        try {
-            await this.supabase.from('tracking_events').insert({
-                scout_id: scoutId,
-                event_type: 'page_view',
-                meta_data: { campaign_id: campaignId }
-            });
-            console.log('SIM-WIDGET: Page View Tracked');
-        } catch (e) {
-            console.warn('SIM-WIDGET: Tracking failed', e);
-        }
-    }
+    window.SimScouting.trackPageView(campaignId);
   }
 
   render() {
@@ -197,7 +330,6 @@ class SimScoutingWidget extends HTMLElement {
         <h2>Gratis Training sichern</h2>
         <form id="scout-form">
           <div class="input-group">
-          <div class="input-group">
             <label for="first_name">Vorname</label>
             <input type="text" id="first_name" name="first_name" required placeholder="Max">
           </div>
@@ -228,7 +360,7 @@ class SimScoutingWidget extends HTMLElement {
     const btn = this.shadowRoot.getElementById('submit-btn');
     const errorMsg = this.shadowRoot.getElementById('error-msg');
     const form = this.shadowRoot.getElementById('scout-form');
-    const successMsg = this.shadowRoot.getElementById('success-msg');
+    // const successMsg = this.shadowRoot.getElementById('success-msg'); // Not used directly, cleared by innerHTML replacement
 
     btn.disabled = true;
     const originalBtnText = btn.textContent;
@@ -244,11 +376,12 @@ class SimScoutingWidget extends HTMLElement {
         // 1. Get Campaign ID
         const campaignId = this.getAttribute('campaign-id');
 
-        // 2. Get Scout ID
-        const urlParams = new URLSearchParams(window.location.search);
-        let scoutId = urlParams.get('ref');
+        // 2. Get Scout ID from SDK
+        let scoutId = window.SimScouting.getScoutId();
+        // 3. Get Source
+        const source = window.SimScouting.getSource();
         
-        // Debug override for localhost
+        // Debug override for localhost (if no stored ID)
         if (!scoutId && window.location.hostname === 'localhost') scoutId = '0e13eb93-b8fa-4801-a800-13a4ce596be2';
 
         const payload = {
@@ -257,7 +390,12 @@ class SimScoutingWidget extends HTMLElement {
           first_name: firstName,
           last_name: lastName,
           phone: phone,
-          lead_data: { first_name: firstName, last_name: lastName, phone: phone },
+          lead_data: { 
+              first_name: firstName, 
+              last_name: lastName, 
+              phone: phone,
+              source: source || 'direct' 
+          },
           status: 'pending'
         };
 
@@ -266,6 +404,9 @@ class SimScoutingWidget extends HTMLElement {
             .insert(payload);
 
         if (error) throw error;
+        
+        // Also track conversion event
+        await window.SimScouting.trackConversion('lead_form_submit', { campaign_id: campaignId });
 
         // Force UI update by replacing content
         const container = this.shadowRoot.getElementById('widget-container');

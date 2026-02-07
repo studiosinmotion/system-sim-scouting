@@ -99,3 +99,21 @@
 - **Datenbank V2:** Trennung von Vor-/Nachname, neue `tracking_events` Tabelle.
 - **Frontend V2:** Updates an Widget & App für neue Datenstruktur & Event-Tracking.
 - **Admin Dashboard:** Neues Tool (`admin.html`) zur Auswertung von KPIs, Leaderboards und Live-Aktivitäten.
+
+## 13. Universal Tracking SDK
+
+**Ziel:** Standardisierung des Trackings für maximale Zuverlässigkeit.
+
+- **Globales Objekt:** `window.SimScouting` als zentrale Schnittstelle.
+- **Persistenz:** Automatische Speicherung der Scout-ID im `localStorage`.
+- **Flexibilität:** Public API für manuelle Integrationen (`getScoutId`, `fillHiddenFields`).
+- **Sichtbarkeit:** Korrektur der RLS-Policies, damit Tracking-Events im Dashboard sichtbar sind.
+
+## 14. Lead Source Tracking & E-Mail Share
+
+**Ziel:** Genauere Analyse der Werbekanäle.
+
+- **Identifikation:** Unterscheidung zwischen Kampagne (`?campaign=...`) und Kanal (`source`).
+- **Integration:** SDK speichert Quelle, Datenbank (`tracking_events`) empfängt beide Werte.
+- **UI:** Anzeige passender Icons im Admin-Dashboard.
+- **Feature:** E-Mail-Teilen-Button in der Scout App + Kampagnen-Tracking.

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Test Page</title>
+    <script type="module" src="./widget.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+        code { background: #eee; padding: 2px 5px; border-radius: 4px; }
+        button { cursor: pointer; padding: 8px 15px; background: #00b4d8; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #0096b4; }
+    </style>
+</head>
+<body>
+    <h1>SimScouting SDK Test</h1>
+
+    <div class="box">
+        <h3>1. Scope & Persistence</h3>
+        <p>Current Scout ID: <strong id="current-id">-</strong></p>
+        <button onclick="refreshId()">Refresh Display</button>
+        <button onclick="setDummyId()">Set Dummy ID (localStorage)</button>
+        <button onclick="clearId()">Clear ID</button>
+    </div>
+
+    <div class="box">
+        <h3>2. Hidden Fields</h3>
+        <p>Input with class <code>.sim-ref-id</code>:</p>
+        <input type="text" class="sim-ref-id" placeholder="Hidden Field" readonly>
+        <br><br>
+        <button onclick="testFill()">SimScouting.fillHiddenFields('.sim-ref-id')</button>
+    </div>
+
+    <div class="box">
+        <h3>3. Conversion Tracking</h3>
+        <button onclick="testConversion()">SimScouting.trackConversion('test_event')</button>
+        <p id="conversion-result" style="font-size: 0.9em; color: gray;"></p>
+    </div>
+
+    <div class="box">
+        <h3>4. Widget Element</h3>
+        <sim-scouting-widget campaign-id="TEST_SDK_CAMPAIGN"></sim-scouting-widget>
+    </div>
+
+    <script type="module">
+        // Wait for module to load
+        setTimeout(() => {
+            refreshId();
+        }, 500);
+
+        window.refreshId = () => {
+            const id = window.SimScouting ? window.SimScouting.getScoutId() : 'SDK not loaded';
+            document.getElementById('current-id').textContent = id || 'null';
+        };
+
+        window.setDummyId = () => {
+            localStorage.setItem('sim_scout_id', 'TEST-SCOUT-ID-12345');
+            refreshId();
+        };
+
+        window.clearId = () => {
+            localStorage.removeItem('sim_scout_id');
+            refreshId();
+        };
+
+        window.testFill = () => {
+            if (window.SimScouting) {
+                const count = window.SimScouting.fillHiddenFields('.sim-ref-id');
+                alert(`Filled ${count} fields`);
+            }
+        };
+
+        window.testConversion = async () => {
+            if (window.SimScouting) {
+                document.getElementById('conversion-result').textContent = 'Tracking...';
+                const result = await window.SimScouting.trackConversion('test_event', { page: 'sdk_test' });
+                console.log(result);
+                document.getElementById('conversion-result').textContent = result.success ? 'Success! Check console.' : 'Failed. Check console.';
+            }
+        };
+    </script>
+</body>
+</html>

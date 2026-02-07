@@ -1,0 +1,26 @@
+[
+  {
+    "step": "init",
+    "message": "Starting simulation..."
+  },
+  {
+    "step": "test_1",
+    "message": "Inserting with scout_id: null"
+  },
+  {
+    "step": "test_1_result",
+    "status": "success"
+  },
+  {
+    "step": "test_2",
+    "message": "Fetching valid scout ID..."
+  },
+  {
+    "step": "test_2_insert",
+    "message": "Inserting with scout_id: 0e13eb93-b8fa-4801-a800-13a4ce596be2"
+  },
+  {
+    "step": "test_2_result",
+    "status": "success"
+  }
+]

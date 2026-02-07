@@ -1,0 +1,11 @@
+[
+  {
+    "table_schema": "public",
+    "constraint_name": "tracking_events_scout_id_fkey",
+    "table_name": "tracking_events",
+    "column_name": "scout_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "scouts",
+    "foreign_column_name": "id"
+  }
+]

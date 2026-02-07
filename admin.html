@@ -31,6 +31,77 @@
         </div>
     </div>
 
+    <!-- Scout Detail Modal (Hidden) -->
+    <div id="scout-modal" class="fixed inset-0 bg-black/80 z-40 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl border border-slate-700">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-slate-700 bg-slate-800/50 rounded-t-2xl">
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                        <i class="fa-solid fa-user text-blue-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 id="modal-scout-name" class="text-2xl font-bold">Scout Name</h2>
+                        <div class="text-sm text-slate-400">Scout Details & Performance</div>
+                    </div>
+                </div>
+                <button onclick="closeScoutModal()" class="h-10 w-10 rounded-full hover:bg-slate-700 flex items-center justify-center transition">
+                    <i class="fa-solid fa-times text-slate-400 text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-6 overflow-y-auto modal-scroll flex-1">
+                
+                <!-- Mini KPIs -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Total Leads</div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-emerald-500"></i>
+                            <span id="modal-kpi-leads" class="text-2xl font-bold">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Link Shares</div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-share-alt text-yellow-500"></i>
+                            <span id="modal-kpi-shares" class="text-2xl font-bold">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Page Views</div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-eye text-blue-500"></i>
+                            <span id="modal-kpi-views" class="text-2xl font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recruited Friends Table -->
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-slate-400"></i> Geworbene Freunde
+                </h3>
+                <div class="overflow-hidden rounded-xl border border-slate-700">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-400 text-sm">
+                                <th class="p-3 pl-4">Datum</th>
+                                <th class="p-3">Name</th>
+                                <th class="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-leads-body" class="text-sm divide-y divide-slate-700 bg-slate-800/20">
+                            <tr><td colspan="3" class="p-4 text-center text-slate-500">Keine Daten</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content (Hidden until auth) -->
     <div id="dashboard" class="hidden p-6 max-w-7xl mx-auto">
         
@@ -89,7 +160,7 @@
         </div>
 
         <!-- Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             
             <!-- Leaderboard (2 Cols) -->
             <div class="lg:col-span-2 glass-panel rounded-xl p-6">
@@ -125,9 +196,44 @@
 
         </div>
 
+        <!-- Lead Management Section (New) -->
+        <div class="glass-panel rounded-xl p-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-address-book text-emerald-400"></i> Neueste Leads & Anmeldungen
+                </h3>
+                
+                <!-- Search -->
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="lead-search" placeholder="Suche nach Namen..." 
+                           class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-4 pl-10 text-sm focus:outline-none focus:border-blue-500 transition">
+                    <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-slate-400 text-sm border-b border-slate-700 bg-slate-800/50">
+                            <th class="p-3 rounded-tl-lg">Datum</th>
+                            <th class="p-3">Quelle</th>
+                            <th class="p-3">Vorname</th>
+                            <th class="p-3">Nachname</th>
+                            <th class="p-3">Telefon</th>
+                            <th class="p-3 rounded-tr-lg">Geworben von</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leads-body" class="text-sm text-slate-300">
+                        <tr><td colspan="5" class="p-4 text-center text-slate-500">Lade Leads...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="leads-count" class="text-xs text-slate-500 mt-2 text-right">0 Einträge</div>
+        </div>
+
         <!-- Debug / Footer -->
         <div class="mt-12 text-center text-slate-600 text-sm">
-            Admin Dashboard v2.0 • Data based on SIM-Scouting Supabase
+            Admin Dashboard v2.1 • Data based on SIM-Scouting Supabase
             <div id="debug-area" class="mt-2 font-mono text-xs text-red-900"></div>
         </div>
     </div>
@@ -142,6 +248,11 @@
 
         // Init Supabase
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Global State
+        let allLeads = []; 
+        let allEvents = [];
+        let scoutMap = {};
 
         // --- AUTH ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -159,7 +270,7 @@
         // --- DATA LOGIC ---
         async function initDashboard() {
             try {
-                // 1. Fetch Scouts (Reference Data)
+                // 1. Fetch Scouts
                 const { data: scouts, error: errScouts } = await supabase
                     .from('scouts')
                     .select('id, first_name, last_name')
@@ -167,7 +278,7 @@
                 
                 if (errScouts) throw errScouts;
 
-                const scoutMap = {}; // ID -> Name
+                scoutMap = {}; // Reset
                 const scoutIds = [];
                 scouts.forEach(s => {
                     scoutMap[s.id] = `${s.first_name} ${s.last_name}`;
@@ -176,34 +287,51 @@
 
                 document.getElementById('kpi-scouts').textContent = scouts.length;
 
-                // 2. Fetch Invites (Leads)
-                // Note: Filter by valid scout IDs to implicitly filter by tenant
+                // 2. Fetch Invites (Leads) WITH joins logic (manual join here for Simplicity/RLS)
+                // We fetch all invites that match our scout IDs
                 const { data: invites, error: errInvites } = await supabase
                     .from('invites')
-                    .select('id, scout_id, created_at, first_name, last_name')
-                    .in('scout_id', scoutIds);
+                    .select('id, scout_id, created_at, first_name, last_name, phone, lead_data')
+                    .in('scout_id', scoutIds)
+                    .order('created_at', { ascending: false });
 
                 if (errInvites) throw errInvites;
 
-                const totalLeads = invites.length;
+                // Enrich leads with Scout Name
+                allLeads = invites.map(inv => ({
+                    ...inv,
+                    scout_name: scoutMap[inv.scout_id] || 'Unbekannt'
+                }));
+
+                const totalLeads = allLeads.length;
                 document.getElementById('kpi-leads').textContent = totalLeads;
 
-                // 3. Fetch Tracking Events (Traffic)
-                const { count: trafficCount, error: errTraffic } = await supabase
+                // Render Leads Table
+                renderLeadsTable(allLeads);
+
+                // Setup Search Listener
+                document.getElementById('lead-search').addEventListener('input', (e) => {
+                    filterLeads(e.target.value);
+                });
+
+
+                // 3. Fetch Tracking Events (Traffic & Shares)
+                const { data: eventsData, error: errTraffic } = await supabase
                     .from('tracking_events')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('event_type', 'page_view')
-                    .in('scout_id', scoutIds);
+                    .select('*')
+                    .in('scout_id', scoutIds)
+                    .order('created_at', { ascending: false });
                 
                 if (errTraffic) throw errTraffic;
 
+                allEvents = eventsData || [];
+
+                // Calculate total page views for KPI
+                const trafficCount = allEvents.filter(e => e.event_type === 'page_view').length;
                 document.getElementById('kpi-traffic').textContent = trafficCount;
 
                 // 4. Conversion Rate
-                // Fix for Legacy Data: If we have leads but no tracking events yet, 
-                // assume at least 1 view per lead to avoid 0% or >100% artifacts.
                 const effectiveTraffic = Math.max(trafficCount, totalLeads);
-                
                 let conversion = 0;
                 if (effectiveTraffic > 0) {
                     conversion = (totalLeads / effectiveTraffic) * 100;
@@ -212,80 +340,209 @@
 
 
                 // --- LEADERBOARD LOGIC ---
-                // Count invites per scout
                 const leadCounts = {};
-                invites.forEach(inv => {
+                allLeads.forEach(inv => {
                     const sid = inv.scout_id;
                     leadCounts[sid] = (leadCounts[sid] || 0) + 1;
                 });
 
-                // Convert to array and sort
                 const leaderboard = Object.keys(leadCounts).map(sid => ({
                     id: sid,
                     name: scoutMap[sid] || 'Unbekannt',
                     leads: leadCounts[sid]
-                })).sort((a, b) => b.leads - a.leads).slice(0, 5); // Top 5
+                })).sort((a, b) => b.leads - a.leads).slice(0, 5);
 
                 renderLeaderboard(leaderboard, totalLeads);
 
 
                 // --- ACTIVITY FEED LOGIC ---
-                // Fetch recent events (mixed: invites and tracked interactions)
-                
-                // Tracked Events (Limit 20)
+                // Fetch recent events
                 const { data: recentEvents, error: errRecent } = await supabase
                     .from('tracking_events')
                     .select('*')
-                    .in('scout_id', scoutIds)
+                    .or(`scout_id.in.(${scoutIds.join(',')}),scout_id.is.null`) // Include organic if desired, or strict: .in('scout_id', scoutIds)
                     .order('created_at', { ascending: false })
                     .limit(20);
 
-                // Combine with Invites (already fetched, but we need date)
-                // We'll just mix the recentEvents and the Invites array in JS
-                
                 const feedItems = [];
 
-                // Add Leads (Invites)
-                invites.forEach(inv => {
+                // Add Leads
+                allLeads.forEach(inv => {
+                    let sourceText = '';
+                    let leadData = inv.lead_data;
+                    
+                    if (typeof leadData === 'string') {
+                        try { leadData = JSON.parse(leadData); } catch (e) {}
+                    }
+                    
+                    if (leadData && leadData.source) {
+                        const s = leadData.source;
+                        if (s === 'wa') sourceText = ' via WhatsApp';
+                        if (s === 'cp') sourceText = ' via Link';
+                        if (s === 'em') sourceText = ' via E-Mail';
+                    }
+
                     feedItems.push({
                         type: 'lead',
                         timestamp: new Date(inv.created_at),
-                        scout: scoutMap[inv.scout_id] || 'Unbekannt',
-                        details: `Neuer Lead: ${inv.first_name || 'Unbekannt'} ${inv.last_name || ''}`
+                        scout: inv.scout_name,
+                        details: `Neuer Lead: ${inv.first_name} ${inv.last_name}${sourceText}`,
+                        meta: null
                     });
                 });
 
                 // Add Tracking Events
                 if (recentEvents) {
                     recentEvents.forEach(evt => {
-                        let label = 'Interaktion';
-                        let icon = 'fa-bolt';
+                        // Filter organic if strictly required, but usually we want to see them
+                        const scoutName = evt.scout_id ? (scoutMap[evt.scout_id] || 'Unbekannt') : 'Organisch';
                         
-                        if (evt.event_type === 'share_whatsapp') { label = 'Hat geteilt (WhatsApp)'; icon = 'fa-whatsapp'; }
-                        if (evt.event_type === 'share_copy') { label = 'Hat Link kopiert'; icon = 'fa-copy'; }
-                        if (evt.event_type === 'save_link') { label = 'Hat Dashboard gespeichert'; icon = 'fa-floppy-disk'; }
-                        if (evt.event_type === 'page_view') { label = 'Seitenaufruf'; icon = 'fa-eye'; }
-
                         feedItems.push({
-                            type: 'event',
+                            type: evt.event_type,
                             timestamp: new Date(evt.created_at),
-                            scout: scoutMap[evt.scout_id] || 'Unbekannt',
-                            details: label,
-                            icon: icon
+                            scout: scoutName,
+                            details: '', // Calculated in render
+                            meta: evt.meta_data
                         });
                     });
                 }
 
-                // Sort by time desc
                 feedItems.sort((a, b) => b.timestamp - a.timestamp);
-                const topFeed = feedItems.slice(0, 15); // Show top 15
-
-                renderFeed(topFeed);
+                renderFeed(feedItems.slice(0, 15));
 
             } catch (err) {
                 console.error(err);
                 document.getElementById('debug-area').textContent = 'Error: ' + err.message;
             }
+        }
+
+        // --- MODAL LOGIC (Global) ---
+        window.openScoutModal = function(scoutId) {
+            const modal = document.getElementById('scout-modal');
+            const scoutName = scoutMap[scoutId] || 'Unbekannt';
+            
+            // 1. Set Header
+            document.getElementById('modal-scout-name').textContent = scoutName;
+
+            // 2. Filter Leads for this Scout
+            const myLeads = allLeads.filter(l => l.scout_id === scoutId);
+            document.getElementById('modal-kpi-leads').textContent = myLeads.length;
+
+            // 3. Filter Events for stats
+            const myEvents = allEvents.filter(e => e.scout_id === scoutId);
+            
+            // Views
+            const myViews = myEvents.filter(e => e.event_type === 'page_view').length;
+            document.getElementById('modal-kpi-views').textContent = myViews;
+
+            // Shares (Whatsapp + Email + Copy + Save)
+            const myShares = myEvents.filter(e => 
+                e.event_type === 'share_whatsapp' || 
+                e.event_type === 'share_copy' || 
+                e.event_type === 'share_email' || 
+                e.event_type === 'save_link'
+            ).length;
+            document.getElementById('modal-kpi-shares').textContent = myShares;
+
+            // 4. Render Table
+            const tbody = document.getElementById('modal-leads-body');
+            tbody.innerHTML = '';
+
+            if (myLeads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Keine geworbenen Freunde</td></tr>';
+            } else {
+                myLeads.forEach(lead => {
+                    const date = new Date(lead.created_at).toLocaleDateString();
+                    const row = `
+                        <tr class="border-b border-slate-700/50">
+                            <td class="p-3 pl-4 text-slate-400 font-mono text-xs">${date}</td>
+                            <td class="p-3 font-medium text-white">${lead.first_name} ${lead.last_name}</td>
+                            <td class="p-3">
+                                <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Lead</span>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+
+            // Show
+            modal.classList.remove('hidden');
+        };
+
+        window.closeScoutModal = function() {
+            document.getElementById('scout-modal').classList.add('hidden');
+        };
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') window.closeScoutModal();
+        });
+
+
+        // --- RENDER FUNCTIONS ---
+
+        function renderLeadsTable(leads) {
+            const tbody = document.getElementById('leads-body');
+            const counter = document.getElementById('leads-count');
+            tbody.innerHTML = '';
+            
+            counter.textContent = `${leads.length} Einträge`;
+
+            if (leads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Keine Leads gefunden</td></tr>';
+                return;
+            }
+
+            leads.forEach(lead => {
+                const date = new Date(lead.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+                
+                // Determine Source Icon
+                let sourceIcon = '<i class="fa-solid fa-link text-slate-600" title="Direkt / Unbekannt"></i>';
+                
+                let leadData = lead.lead_data;
+                if (typeof leadData === 'string') {
+                    try {
+                        leadData = JSON.parse(leadData);
+                    } catch (e) {
+                         console.warn('Could not parse lead_data', e);
+                         leadData = {};
+                    }
+                }
+                
+                const src = leadData && leadData.source ? leadData.source : 'direct';
+                
+                if (src === 'wa') sourceIcon = '<i class="fa-brands fa-whatsapp text-green-500" title="Quelle: WhatsApp"></i>';
+                if (src === 'cp') sourceIcon = '<i class="fa-solid fa-copy text-blue-400" title="Quelle: Link kopiert"></i>';
+                if (src === 'em') sourceIcon = '<i class="fa-solid fa-envelope text-blue-600" title="Quelle: E-Mail"></i>';
+                if (src === 'qr') sourceIcon = '<i class="fa-solid fa-qrcode text-white" title="Quelle: QR Code"></i>';
+
+                const row = `
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition">
+                        <td class="p-3 text-slate-400 font-mono text-xs">${date}</td>
+                        <td class="p-3 text-center">${sourceIcon}</td>
+                        <td class="p-3 font-medium text-white" title="Leaddetails ansehen">${lead.first_name || '-'}</td>
+                        <td class="p-3 font-medium text-white" title="Leaddetails ansehen">${lead.last_name || '-'}</td>
+                        <td class="p-3 text-slate-400">${lead.phone || '-'}</td>
+                        <td class="p-3">
+                            <button onclick="openScoutModal('${lead.scout_id}')" title="Scoutdetails ansehen" class="px-2 py-1 bg-blue-900/30 text-blue-400 rounded text-xs border border-blue-500/20 hover:bg-blue-900/50 transition cursor-pointer">
+                                ${lead.scout_name}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function filterLeads(query) {
+            const term = query.toLowerCase();
+            const filtered = allLeads.filter(l => 
+                (l.first_name && l.first_name.toLowerCase().includes(term)) ||
+                (l.last_name && l.last_name.toLowerCase().includes(term)) ||
+                (l.scout_name && l.scout_name.toLowerCase().includes(term))
+            );
+            renderLeadsTable(filtered);
         }
 
         function renderLeaderboard(data, totalLeads) {
@@ -303,12 +560,12 @@
                 if (index === 1) badge = '🥈';
                 if (index === 2) badge = '🥉';
 
-                const share = ((item.leads / totalLeads) * 100).toFixed(0);
+                const share = totalLeads > 0 ? ((item.leads / totalLeads) * 100).toFixed(0) : 0;
 
                 const row = `
-                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition">
-                        <td class="p-4 font-bold text-slate-400">${index + 1}.</td>
-                        <td class="p-4 font-semibold">${badge} ${item.name}</td>
+                    <tr onclick="openScoutModal('${item.id}')" title="Scoutdetails ansehen" class="border-b border-slate-800 hover:bg-slate-800/50 transition cursor-pointer group">
+                        <td class="p-4 font-bold text-slate-400 group-hover:text-white transition">${index + 1}.</td>
+                        <td class="p-4 font-semibold group-hover:text-blue-400 transition">${badge} ${item.name}</td>
                         <td class="p-4 text-right font-mono text-blue-400">${item.leads}</td>
                         <td class="p-4 text-right">
                             <div class="w-full bg-slate-700 rounded-full h-1.5 mt-2">
@@ -331,31 +588,57 @@
                 let iconClass = 'fa-solid fa-circle text-slate-600';
                 let bgClass = 'bg-slate-800';
                 let borderClass = 'border-slate-700';
+                let label = item.details;
 
-                if (item.type === 'lead') {
-                    iconClass = 'fa-solid fa-fire text-orange-500';
-                    bgClass = 'bg-orange-900/10';
-                    borderClass = 'border-orange-500/20';
-                } else if (item.details.includes('WhatsApp')) {
-                    iconClass = 'fa-brands fa-whatsapp text-green-500';
+                // --- NEW ICON LOGIC ---
+                switch(item.type) {
+                    case 'page_view':
+                        iconClass = 'fa-solid fa-eye text-blue-400';
+                        label = 'Seite besucht';
+                        break;
+                    
+                    case 'share_whatsapp':
+                        iconClass = 'fa-brands fa-whatsapp text-yellow-500'; // Yellow as requested (or strictly brand color)
+                        label = 'Teilen gestartet (WhatsApp)';
+                        break;
+                    
+                    case 'conversion':
+                        iconClass = 'fa-solid fa-check-circle text-green-500';
+                        const convName = (item.meta && item.meta.conversion_name) ? item.meta.conversion_name : 'Conversion';
+                        label = `Conversion: <span class="text-green-300">${convName}</span>`;
+                        bgClass = 'bg-green-900/10';
+                        borderClass = 'border-green-500/20';
+                        break;
+
+                    case 'lead':
+                        iconClass = 'fa-solid fa-fire text-orange-500';
+                        bgClass = 'bg-orange-900/10';
+                        borderClass = 'border-orange-500/20';
+                        break;
+                        
+                    case 'share_copy':
+                         iconClass = 'fa-solid fa-copy text-indigo-400';
+                         label = 'Link kopiert';
+                         break;
+
+                    case 'save_link':
+                        iconClass = 'fa-solid fa-floppy-disk text-purple-400';
+                        label = 'Dashboard gespeichert';
+                        break;
                 }
-
-                if (item.icon) iconClass = `fa-solid ${item.icon} text-blue-400`;
-                if (item.icon === 'fa-whatsapp') iconClass = `fa-brands fa-whatsapp text-green-400`;
 
                 const el = `
                     <div class="flex items-start gap-4 p-3 rounded-lg border ${borderClass} ${bgClass}">
                         <div class="mt-1"><i class="${iconClass}"></i></div>
                         <div>
                             <div class="text-xs text-slate-400 mb-0.5">${time} • ${item.scout}</div>
-                            <div class="text-sm font-medium text-slate-200">${item.details}</div>
+                            <div class="text-sm font-medium text-slate-200">${label}</div>
                         </div>
                     </div>
                 `;
                 container.innerHTML += el;
             });
         }
-
     </script>
 </body>
 </html>
