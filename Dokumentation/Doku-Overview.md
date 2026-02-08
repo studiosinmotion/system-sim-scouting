@@ -52,7 +52,11 @@
 
 ## 07. Automation Workflow (n8n)
 
-**Ziel:** Backend-Prozesse und Kommunikation.
+- **Ziel:** Visuelle Anzeige von Erfolgen und Incentives.
+- Erweiterung: `reward_config` Support (JSON Konfiguration für Zeiträume).
+- Doku: [16_reward_system.md](./16_reward_system.md)
+
+---
 
 - **Webhook:** Empfängt neue Leads vom Widget.
 - **Supabase:** Lädt Scout-Daten nach.

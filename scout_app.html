@@ -15,10 +15,7 @@
     <!-- Card -->
     <div class="bg-[#1a1a1a] p-8 rounded-2xl shadow-2xl shadow-black/50 max-w-sm w-full text-center border border-gray-800 transform transition-all hover:scale-[1.01]">
         
-        <!-- Icon / Logo Placeholder -->
-        <div class="text-5xl mb-6 animate-bounce">
-            🎁
-        </div>
+
 
         <!-- VIEW: DASHBOARD (Sharing) -->
         <div id="view-dashboard" class="hidden">
@@ -34,32 +31,10 @@
             <!-- STATS CARD (New Feature) -->
             <!-- STATS CARD (New Feature) -->
             <!-- STATS CARD (New Feature) -->
-            <div id="stats-loader" class="mb-8 text-center text-gray-500 animate-pulse">
-                <i class="fas fa-spinner fa-spin mr-2"></i> Lade Statistik...
-            </div>
 
-            <div id="stats-container" class="mb-8 hidden">
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- Count -->
-                    <div class="bg-[#111] p-4 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
-                        <span class="text-3xl font-bold text-white" id="stats-count">-</span>
-                        <span class="text-xs text-gray-500 uppercase tracking-wider mt-1">Leads</span>
-                    </div>
-                    <!-- Rank -->
-                    <div class="bg-[#111] p-4 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
-                        <span class="text-xl font-bold text-gray-400" id="stats-rank">-</span>
-                        <span class="text-xs text-gray-500 uppercase tracking-wider mt-1">Status</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- EMPTY STATE (No leads yet) -->
-            <div id="stats-empty" class="mb-8 hidden">
-                <div class="bg-gray-800/30 p-4 rounded-xl border border-gray-800 text-gray-400 text-sm">
-                    Du hast noch keine Freunde eingeladen. <br>
-                    <span class="text-white font-bold">Teile deinen Link und werde zur Legende! 🚀</span>
-                </div>
-            </div>
+            <!-- Reward Banner Container -->
+            <div id="reward-container" class="mb-6 hidden"></div>
 
             <!-- Action Buttons -->
             <div class="flex flex-col gap-4">
@@ -88,6 +63,35 @@
                     <span>Link für mich sichern 💾</span>
                 </a>
             
+            </div>
+
+            <!-- STATS (Moved to bottom) -->
+            <div class="mt-8 pt-6 border-t border-gray-800">
+                 <div id="stats-loader" class="mb-4 text-center text-gray-500 animate-pulse text-sm">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Lade Statistik...
+                </div>
+
+                <div id="stats-container" class="mb-4 hidden scale-90 origin-top">
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Count -->
+                        <div class="bg-[#111] p-3 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
+                            <span class="text-2xl font-bold text-white" id="stats-count">-</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Leads</span>
+                        </div>
+                        <!-- Rank -->
+                        <div class="bg-[#111] p-3 rounded-xl border border-gray-800 flex flex-col items-center justify-center">
+                            <span class="text-lg font-bold text-gray-400" id="stats-rank">-</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Status</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EMPTY STATE (No leads yet) -->
+                <div id="stats-empty" class="mb-4 hidden text-center">
+                    <div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800 text-gray-400 text-xs inline-block">
+                        Noch keine Leads. <span class="text-white font-bold">Teile deinen Link! 🚀</span>
+                    </div>
+                </div>
             </div>
             
             <!-- Link Display (Optional) -->
@@ -137,6 +141,9 @@
         </div>
 
     </div>
+
+    <!-- Achievements Section -->
+    <div id="achievements-container" class="mb-8 w-full max-w-sm hidden"></div>
 
     <div class="mt-8 opacity-30">
         <img src="https://www.studios-in-motion.de/images/logo_studiosinmotion_2021_rahmen.svg" alt="Studios in Motion" class="h-6 mx-auto invert grayscale" onerror="this.style.display='none'">
@@ -224,13 +231,16 @@
             if (scoutId) {
                 // SHOW DASHBOARD
                 viewDashboard.classList.remove('hidden');
-                await initDashboard(scoutId); // Wait for dashboard init
+                // NEW: Load Stats (Parallel not waiting for Dashboard)
+                // We need rewardConfig from initDashboard to be available or passed. 
+                // Refactor: initDashboard now returns rewardConfig or we make it global.
+                // For now, let's just make initDashboard return the config and we wait for it.
+                const config = await initDashboard(scoutId); 
                 
-                // Optional: Fetch Scout Name
+                // Optional: Fetch Scout Name (Restored)
                 fetchScoutName(scoutId);
                 
-                // NEW: Load Stats (Parallel not waiting for Dashboard)
-                loadStats(scoutId);
+                loadStats(scoutId, config);
             } else {
                 // SHOW REGISTRATION
                 viewRegister.classList.remove('hidden');
@@ -266,11 +276,13 @@
             let landingPageUrl = FALLBACK_LANDING_PAGE_URL;
             let whatsappTextTemplate = `Hey, ich lade dich zu 7 Tagen Training ein! Hol dir hier deinen Pass: {{link}}`;
 
+            let rewardConfig = {};
+
             // Fetch dynamic configuration from Campaign
             try {
                 const { data: campaigns, error } = await supabase
                     .from('campaigns')
-                    .select('scouting_text, landingpage_url')
+                    .select('scouting_text, landingpage_url, reward_config')
                     .eq('tenant_id', TENANT_ID)
                     .eq('status', 'active') 
                     .limit(1);
@@ -284,6 +296,13 @@
                     if (campaign.landingpage_url) {
                         landingPageUrl = campaign.landingpage_url;
                     }
+
+                    // Handle Reward Config
+                    rewardConfig = campaign.reward_config || {};
+                    console.log('Campaign Reward Config:', rewardConfig);
+                    
+                    // Render Rewards
+                    renderRewardBanner(rewardConfig);
                 }
             } catch (err) {
                 console.warn('Could not load dynamic campaign settings', err);
@@ -361,22 +380,24 @@
             const saveBtn = document.getElementById('save-btn');
             saveBtn.href = saveUrl;
             saveBtn.onclick = () => trackEvent('save_link', scoutId, { source: 'save' });
+
+            return rewardConfig;
         }
 
-        // NEW: Load Live Stats
-        async function loadStats(scoutId) {
+        // NEW: Load Live Stats & Achievements
+        async function loadStats(scoutId, rewardConfig) {
             const loader = document.getElementById('stats-loader');
             const container = document.getElementById('stats-container');
             const emptyState = document.getElementById('stats-empty');
-            const debugLog = document.getElementById('debug-link'); // reuse debug area
+            // const debugLog = document.getElementById('debug-link'); // reuse debug area
 
             try {
                 // console.log('Loading stats for', scoutId);
                 
-                // Count invites for this scout
-                const { count, error } = await supabase
+                // Fetch full invites to list them
+                const { data: invites, count, error } = await supabase
                     .from('invites')
-                    .select('id', { count: 'exact', head: false }) // ensure GET request
+                    .select('id, status, created_at, lead_data', { count: 'exact' }) 
                     .eq('scout_id', scoutId);
 
                 if (error) {
@@ -418,6 +439,14 @@
 
                     rankEl.textContent = rankText;
                     rankEl.className = `text-xl font-bold ${rankClass}`;
+                }
+
+                // Render Achievements List
+                if (rewardConfig && (rewardConfig.instant_reward?.active || rewardConfig.lottery?.active)) {
+                    console.log('Rendering Achievements...', invites?.count); // Use matches or length? invites is data.
+                    // Wait, invites is 'data'. count is 'count'.
+                    // If invites is array.
+                    renderAchievements(invites || [], rewardConfig);
                 }
 
             } catch (err) {
@@ -485,6 +514,158 @@
             setTimeout(() => {
                 toast.classList.add('opacity-0');
             }, 2000);
+        }
+
+        // NEW: Render Reward Banner
+        function renderRewardBanner(config) {
+            if (!config) return;
+            const container = document.getElementById('reward-container');
+            container.innerHTML = '';
+            
+            let hasContent = false;
+
+            // 1. Instant Reward
+            if (config.instant_reward && config.instant_reward.active) {
+                hasContent = true;
+                const r = config.instant_reward;
+                const card = document.createElement('div');
+                card.className = 'bg-yellow-900/20 border border-yellow-500/50 p-4 rounded-xl flex items-center gap-4 relative overflow-hidden mb-3';
+                card.innerHTML = `
+                    <div class="absolute top-0 right-0 bg-yellow-500 text-black text-[10px] uppercase font-bold px-2 py-0.5 rounded-bl-lg">
+                        Sofort-Belohnung
+                    </div>
+                    <div class="text-4xl filter drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">
+                        ${r.icon || '🎁'}
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-yellow-400 font-bold leading-tight">${r.title || 'Belohnung'}</h3>
+                        <p class="text-yellow-100/80 text-xs mt-1 leading-snug">${r.description || ''}</p>
+                        ${r.valid_until ? `<div class="mt-1 text-[10px] text-yellow-500/80">Aktion bis: ${new Date(r.valid_until).toLocaleDateString('de-DE')}</div>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+
+            // 2. Lottery
+            if (config.lottery && config.lottery.active) {
+                hasContent = true;
+                const l = config.lottery;
+                const card = document.createElement('div');
+                card.className = 'bg-indigo-900/20 border border-indigo-500/50 p-4 rounded-xl flex items-center gap-4 relative overflow-hidden';
+                card.innerHTML = `
+                    <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-bl-lg">
+                        Gewinnspiel
+                    </div>
+                    <div class="text-4xl filter drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">
+                        ${l.icon || '🎟️'}
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-indigo-400 font-bold leading-tight">${l.title || 'Verlosung'}</h3>
+                        <p class="text-indigo-100/80 text-xs mt-1 leading-snug">${l.description || ''}</p>
+                        ${l.draw_date ? `<div class="mt-1.5 text-[10px] text-indigo-300 bg-indigo-900/40 inline-block px-1.5 py-0.5 rounded border border-indigo-500/20">📅 Auslosung: ${new Date(l.draw_date).toLocaleDateString('de-DE')}</div>` : ''}
+                        ${l.valid_until ? `<div class="mt-1.5 ml-1 text-[10px] text-indigo-300 bg-indigo-900/40 inline-block px-1.5 py-0.5 rounded border border-indigo-500/20">⏳ Bis: ${new Date(l.valid_until).toLocaleDateString('de-DE')}</div>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+
+            if (hasContent) {
+                container.classList.remove('hidden');
+            }
+        }
+
+        // NEW: Render Achievements List
+        function renderAchievements(invites, config) {
+            const container = document.getElementById('achievements-container');
+            container.innerHTML = '';
+            container.classList.remove('hidden');
+            
+            // NEW: Helper for Date Checks
+            const isDateInScope = (dateStr, validFrom, validUntil) => {
+                const d = new Date(dateStr);
+                if (validFrom && new Date(validFrom) > d) return false;
+                if (validUntil && new Date(validUntil) < d) return false;
+                return true;
+            };
+
+            // Filter relevant invites (e.g. lead_captured or completed)
+            // For now assuming all invites that are not 'clicked' (so actual leads)
+            const allLeads = invites.filter(i => i.status && i.status !== 'clicked' && i.status !== 'viewed');
+            
+            // Log for debugging
+            console.log('Total Leads (All Time):', allLeads.length);
+            
+            // if (leads.length === 0) return; // Removed early return to show "0 Tickets" if desired
+
+            // 1. Lottery Logic
+            if (config.lottery && config.lottery.active) {
+                // Filter leads by lottery date scope
+                const validLeads = allLeads.filter(l => isDateInScope(l.created_at, config.lottery.valid_from, config.lottery.valid_until));
+                const tickets = validLeads.length;
+                
+                const lotus = document.createElement('div');
+                lotus.className = 'bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 p-4 rounded-xl mb-6 text-center shadow-lg';
+                lotus.innerHTML = `
+                    <div class="text-3xl mb-1">🎟️ <span class="text-white font-bold">${tickets}</span> <span class="text-indigo-200 text-lg">Lose</span></div>
+                    <div class="text-xs text-indigo-300 uppercase tracking-wide">Im Lostopf für ${config.lottery.title || 'das Gewinnspiel'}</div>
+                    ${tickets < allLeads.length ? `<div class="text-[10px] text-gray-500 mt-1">(${allLeads.length - tickets} abgelaufen/außerhalb Zeitraum)</div>` : ''}
+                `;
+                container.appendChild(lotus);
+            }
+
+            // 2. Instant Rewards List
+            if (config.instant_reward && config.instant_reward.active && allLeads.length > 0) {
+                
+                // Title
+                const title = document.createElement('h3');
+                title.className = 'text-gray-400 text-sm font-bold uppercase tracking-wider mb-3 pl-1';
+                title.innerHTML = `Deine Prämien & Erfolge`;
+                container.appendChild(title);
+
+                const list = document.createElement('div');
+                list.className = 'flex flex-col gap-2';
+
+                allLeads.forEach(lead => {
+                    // Check validity
+                    const isValid = isDateInScope(lead.created_at, config.instant_reward.valid_from, config.instant_reward.valid_until);
+
+                    // Try to parse lead_name
+                    let name = 'Ein Freund';
+                    if (lead.lead_data) {
+                        if (typeof lead.lead_data === 'string') {
+                            try { const d = JSON.parse(lead.lead_data); name = d.first_name || name; } catch(e){}
+                        } else {
+                            name = lead.lead_data.first_name || name;
+                        }
+                    }
+
+                    // Item
+                    const item = document.createElement('div');
+                    item.className = `bg-[#1a1a1a] border ${isValid ? 'border-gray-800' : 'border-red-900/30'} p-3 rounded-lg flex items-center justify-between ${isValid ? '' : 'opacity-50 grayscale'}`;
+                    
+                    // Simple logic: If lead exists -> Status "Verdient" (green)
+                    // In future we could check "reward_claimed" flag.
+                    const isEarned = true; 
+                    
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gray-800 h-8 w-8 rounded-full flex items-center justify-center text-lg">
+                                ${isEarned ? (isValid ? '✅' : '🕰️') : '⏳'}
+                            </div>
+                            <div class="text-left">
+                                <div class="text-sm text-white font-bold">${name}</div>
+                                <div class="text-xs text-yellow-500">${config.instant_reward.title}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs ${isValid ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-gray-700/50 text-gray-500 border-gray-600'} border px-2 py-0.5 rounded font-medium">
+                            ${isValid ? 'Verdient' : 'Abgelaufen'}
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+                
+                container.appendChild(list);
+            }
         }
 
         // Run
