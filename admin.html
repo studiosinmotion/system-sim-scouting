@@ -297,7 +297,7 @@
             <!-- Leaderboard (2 Cols) -->
             <div class="lg:col-span-2 glass-panel rounded-xl p-6">
                 <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-trophy text-yellow-400"></i> Top Scouts
+                    <i class="fa-solid fa-trophy text-yellow-400"></i> Alle Scouts
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -526,11 +526,11 @@
                     leadCounts[sid] = (leadCounts[sid] || 0) + 1;
                 });
 
-                const leaderboard = Object.keys(leadCounts).map(sid => ({
+                const leaderboard = Object.keys(scoutMap).map(sid => ({
                     id: sid,
                     name: scoutMap[sid] || 'Unbekannt',
-                    leads: leadCounts[sid]
-                })).sort((a, b) => b.leads - a.leads).slice(0, 5);
+                    leads: leadCounts[sid] || 0
+                })).sort((a, b) => b.leads - a.leads || a.name.localeCompare(b.name));
 
                 renderLeaderboard(leaderboard, totalLeads);
 
