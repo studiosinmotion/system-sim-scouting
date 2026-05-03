@@ -350,6 +350,7 @@
         let allLeads = []; 
         let allEvents = [];
         let scoutMap = {};
+        let campaignMap = {};
         let sortConfig = { column: 'created_at', direction: 'desc' };
 
         // --- AUTH (Session-basiert) ---
@@ -465,21 +466,43 @@
 
                 document.getElementById('kpi-scouts').textContent = scouts.length;
 
-                // 2. Fetch Invites (Leads) WITH joins logic (manual join here for Simplicity/RLS)
-                // We fetch all invites that match our scout IDs
+                // 2. Fetch Campaigns for this tenant
+                const { data: campaigns, error: errCampaigns } = await supabase
+                    .from('campaigns')
+                    .select('id, name')
+                    .eq('tenant_id', TENANT_ID);
+
+                campaignMap = {};
+                if (campaigns) {
+                    campaigns.forEach(c => { campaignMap[c.id] = c.name; });
+                }
+
+                // 3. Fetch Invites (Leads)
                 const { data: invites, error: errInvites } = await supabase
                     .from('invites')
-                    .select('id, scout_id, created_at, first_name, last_name, phone, lead_data')
+                    .select('id, scout_id, campaign_id, created_at, first_name, last_name, phone, lead_data')
                     .in('scout_id', scoutIds)
                     .order('created_at', { ascending: false });
 
                 if (errInvites) throw errInvites;
 
-                // Enrich leads with Scout Name
-                allLeads = invites.map(inv => ({
-                    ...inv,
-                    scout_name: scoutMap[inv.scout_id] || 'Unbekannt'
-                }));
+                // Enrich leads with Scout Name + Campaign Name
+                allLeads = invites.map(inv => {
+                    // Resolve campaign name: campaign_id FK > lead_data.campaign
+                    let campName = '';
+                    if (inv.campaign_id && campaignMap[inv.campaign_id]) {
+                        campName = campaignMap[inv.campaign_id];
+                    } else {
+                        let ld = inv.lead_data;
+                        if (typeof ld === 'string') try { ld = JSON.parse(ld); } catch(e){}
+                        campName = (ld && (ld.campaign || ld.utm_campaign)) || '';
+                    }
+                    return {
+                        ...inv,
+                        scout_name: scoutMap[inv.scout_id] || 'Unbekannt',
+                        campaign_name: campName
+                    };
+                });
 
                 const totalLeads = allLeads.length;
                 document.getElementById('kpi-leads').textContent = allLeads.length;
@@ -813,7 +836,7 @@
                         <td class="p-3 text-slate-400 font-mono text-xs">${date}</td>
                         <td class="p-3 text-center">${sourceIcon}</td>
                         <td class="p-3">
-                            ${renderCampaignBadge(leadData)} 
+                            ${renderCampaignBadge(lead)} 
                         </td>
                         <td class="p-3 font-medium text-white" title="Leaddetails ansehen">${lead.first_name || '-'}</td>
                         <td class="p-3 font-medium text-white" title="Leaddetails ansehen">${lead.last_name || '-'}</td>
@@ -948,11 +971,8 @@
             const campaigns = new Set();
             
             leads.forEach(l => {
-                let data = l.lead_data;
-                if (typeof data === 'string') try { data = JSON.parse(data); } catch(e){}
-                
-                if (data && (data.campaign || data.utm_campaign)) {
-                    campaigns.add(data.campaign || data.utm_campaign);
+                if (l.campaign_name) {
+                    campaigns.add(l.campaign_name);
                 }
             });
 
@@ -989,20 +1009,21 @@
             if (!camp) {
                 renderLeadsTable(allLeads);
             } else {
-                const filtered = allLeads.filter(l => {
-                    let data = l.lead_data;
-                    if (typeof data === 'string') try { data = JSON.parse(data); } catch(e){}
-                    return data && (data.campaign === camp || data.utm_campaign === camp);
-                });
+                const filtered = allLeads.filter(l => l.campaign_name === camp);
                 renderLeadsTable(filtered);
             }
         }
     
         // Helper
-        function renderCampaignBadge(meta) {
-            if (!meta || (!meta.campaign && !meta.utm_campaign)) return '';
-            const camp = meta.campaign || meta.utm_campaign;
-            // Removed "Via " and added click handler
+        function renderCampaignBadge(leadOrMeta) {
+            // Support both lead objects (with campaign_name) and raw meta objects
+            let camp = '';
+            if (leadOrMeta && leadOrMeta.campaign_name) {
+                camp = leadOrMeta.campaign_name;
+            } else if (leadOrMeta && (leadOrMeta.campaign || leadOrMeta.utm_campaign)) {
+                camp = leadOrMeta.campaign || leadOrMeta.utm_campaign;
+            }
+            if (!camp) return '';
             return `<span onclick="event.stopPropagation(); openCampaignModal('${camp}')" class="inline-block px-1.5 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded border border-indigo-500/30 bg-indigo-500/20 text-indigo-300 cursor-pointer hover:bg-indigo-500/40 hover:text-white transition">
                 ${camp}
             </span>`;
