@@ -66,6 +66,11 @@ class SimScoutingSDK {
         // Debug: Log complete check if campaign missing
         console.log('SIM-SDK: No campaign found in URL.', { search: window.location.search, hash: window.location.hash });
     }
+
+    // Auto-track page view if a scout referral is active
+    if (this.getScoutId()) {
+      this.trackPageView(this.getCampaign()).catch(() => {});
+    }
   }
 
   /**
