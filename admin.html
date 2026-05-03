@@ -332,11 +332,12 @@
                                 <th class="p-3">#</th>
                                 <th class="p-3">Scout Name</th>
                                 <th class="p-3 text-right">Leads</th>
+                                <th class="p-3 text-right">Views</th>
                                 <th class="p-3 text-right">Performance</th>
                             </tr>
                         </thead>
                         <tbody id="leaderboard-body" class="text-sm">
-                            <tr><td colspan="4" class="p-4 text-center text-slate-500">Lade Daten...</td></tr>
+                            <tr><td colspan="5" class="p-4 text-center text-slate-500">Lade Daten...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -575,11 +576,18 @@
                     leadCounts[sid] = (leadCounts[sid] || 0) + 1;
                 });
 
+                // Count page views per scout
+                const viewCounts = {};
+                allEvents.filter(e => e.event_type === 'page_view').forEach(e => {
+                    if (e.scout_id) viewCounts[e.scout_id] = (viewCounts[e.scout_id] || 0) + 1;
+                });
+
                 const leaderboard = Object.keys(scoutMap).map(sid => ({
                     id: sid,
                     name: scoutMap[sid] || 'Unbekannt',
-                    leads: leadCounts[sid] || 0
-                })).sort((a, b) => b.leads - a.leads || a.name.localeCompare(b.name));
+                    leads: leadCounts[sid] || 0,
+                    views: viewCounts[sid] || 0
+                })).sort((a, b) => b.leads - a.leads || b.views - a.views || a.name.localeCompare(b.name));
 
                 renderLeaderboard(leaderboard, totalLeads);
 
@@ -955,7 +963,7 @@
             tbody.innerHTML = '';
             
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Noch keine Daten</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Noch keine Daten</td></tr>';
                 return;
             }
 
@@ -972,6 +980,7 @@
                         <td class="p-4 font-bold text-slate-400 group-hover:text-white transition">${index + 1}.</td>
                         <td class="p-4 font-semibold group-hover:text-blue-400 transition">${badge} ${item.name}</td>
                         <td class="p-4 text-right font-mono text-blue-400">${item.leads}</td>
+                        <td class="p-4 text-right font-mono ${item.views > 0 ? 'text-indigo-400' : 'text-slate-600'}">${item.views}</td>
                         <td class="p-4 text-right">
                             <div class="w-full bg-slate-700 rounded-full h-1.5 mt-2">
                                 <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${share}%"></div>
