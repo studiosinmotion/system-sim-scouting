@@ -204,7 +204,7 @@ class SimScoutRegister extends HTMLElement {
 
         try {
             // Dynamically import Supabase here to avoid global namespace pollution / requirement
-            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
             
             const supabase = createClient(this.supabaseUrl, this.supabaseKey);
 

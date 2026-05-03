@@ -52,15 +52,13 @@
 
 ## 07. Automation Workflow (n8n)
 
-- **Ziel:** Visuelle Anzeige von Erfolgen und Incentives.
-- Erweiterung: `reward_config` Support (JSON Konfiguration für Zeiträume).
-- Doku: [16_reward_system.md](./16_reward_system.md)
+**Ziel:** Automatische E-Mail-Benachrichtigungen bei neuen Leads und Scout-Registrierungen.
 
----
-
-- **Webhook:** Empfängt neue Leads vom Widget.
-- **Supabase:** Lädt Scout-Daten nach.
-- **E-Mail:** Benachrichtigt Studio (neuer Lead) und Scout (Erfolg/Belohnung).
+- **Datenbank-Trigger:** PostgreSQL-Funktionen (`notify_n8n_lead_in`, `notify_n8n_scout_registered`) senden via `pg_net` HTTP POST an N8N.
+- **N8N Workflow "SIMscouting base":** Webhook → Kampagne auslesen → Scout auslesen → Belohnungs-Logik → E-Mail 2 Company → E-Mail 2 Scout.
+- **Kritisch:** Trigger müssen `row_to_json(NEW)` nutzen, NICHT das Supabase Dashboard (sendet leeren Body).
+- **Kritisch:** Workflow muss in N8N "Published" sein, sonst funktioniert nur die Test-URL.
+- Doku: [07_n8n_automation_setup.md](./07_n8n_automation_setup.md)
 
 ## 08. Scout Onboarding (Self-Service)
 

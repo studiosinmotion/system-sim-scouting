@@ -25,9 +25,20 @@
 
     <!-- Auth Overlay -->
     <div id="auth-layer" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
-        <div class="text-center">
-            <i class="fa-solid fa-lock text-4xl text-slate-500 mb-4"></i>
-            <p>Authentifizierung...</p>
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm mx-4">
+            <div class="text-center mb-6">
+                <img src="https://www.studios-in-motion.de/images/logo_studiosinmotion_2021_rahmen.svg" alt="Logo" class="h-10 mx-auto mb-4">
+                <h2 class="text-xl font-bold">Scouting Admin</h2>
+                <p class="text-slate-400 text-sm mt-1">Bitte Passwort eingeben</p>
+            </div>
+            <form id="login-form" class="flex flex-col gap-3">
+                <input type="password" id="login-password" placeholder="Passwort" autofocus
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 text-sm focus:outline-none focus:border-blue-500 transition text-center tracking-widest">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i>Einloggen
+                </button>
+                <p id="login-error" class="text-red-400 text-sm text-center hidden">Falsches Passwort</p>
+            </form>
         </div>
     </div>
 
@@ -163,14 +174,26 @@
     <div id="dashboard" class="hidden p-6 max-w-7xl mx-auto">
         
         <!-- Header -->
-        <header class="flex justify-between items-center mb-8">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div class="flex items-center gap-3">
                 <img src="https://www.studios-in-motion.de/images/logo_studiosinmotion_2021_rahmen.svg" alt="Logo" class="h-8">
                 <h1 class="text-2xl font-bold text-slate-100">Scouting Dashboard</h1>
             </div>
-            <button onclick="location.reload()" class="p-2 hover:bg-slate-800 rounded-lg transition">
-                <i class="fa-solid fa-rotate-right text-slate-400"></i>
-            </button>
+            <div class="flex items-center gap-3">
+                <!-- Tenant Selector -->
+                <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+                    <i class="fa-solid fa-building text-slate-500 text-sm"></i>
+                    <select id="tenant-selector" class="bg-transparent text-sm text-slate-200 focus:outline-none cursor-pointer appearance-none pr-4">
+                        <option value="" disabled>Tenant laden...</option>
+                    </select>
+                </div>
+                <button onclick="refreshDashboard()" class="p-2 hover:bg-slate-800 rounded-lg transition" title="Daten aktualisieren">
+                    <i class="fa-solid fa-rotate-right text-slate-400"></i>
+                </button>
+                <button onclick="handleLogout()" class="p-2 hover:bg-slate-800 rounded-lg transition" title="Abmelden">
+                    <i class="fa-solid fa-right-from-bracket text-slate-400"></i>
+                </button>
+            </div>
         </header>
 
         <!-- KPI Grid -->
@@ -318,30 +341,109 @@
 
         const SUPABASE_URL = 'https://rmtyebyzitzgkplxvzxg.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_2qDg3Jssg_fTPdXl_3Ku-g_1yOkdJ3i';
-        const TENANT_ID = '79a37c78-7bdf-45e4-a631-fb47926d054d';
 
         // Init Supabase
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
         // Global State
+        let TENANT_ID = null;
         let allLeads = []; 
         let allEvents = [];
         let scoutMap = {};
         let sortConfig = { column: 'created_at', direction: 'desc' };
 
-        // --- AUTH ---
+        // --- AUTH (Session-basiert) ---
+        const AUTH_KEY = 'sim_admin_auth';
+        const TENANT_STORAGE_KEY = 'sim_admin_tenant';
+
+        function showDashboard() {
+            document.getElementById('auth-layer').style.display = 'none';
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
-            const pass = prompt('Bitte Passwort eingeben:');
-            if (pass === 'admin123') {
-                document.getElementById('auth-layer').style.display = 'none';
-                document.getElementById('dashboard').classList.remove('hidden');
-                initDashboard();
+            // Check existing session
+            if (sessionStorage.getItem(AUTH_KEY) === 'ok') {
+                showDashboard();
+                loadTenantsAndInit();
             } else {
-                alert('Falsches Passwort!');
-                document.getElementById('auth-layer').innerHTML = '<p class="text-red-500">Zugriff verweigert.</p>';
+                // Show login form
+                document.getElementById('login-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const pass = document.getElementById('login-password').value;
+                    if (pass === 'admin123') {
+                        sessionStorage.setItem(AUTH_KEY, 'ok');
+                        showDashboard();
+                        loadTenantsAndInit();
+                    } else {
+                        document.getElementById('login-error').classList.remove('hidden');
+                        document.getElementById('login-password').value = '';
+                        document.getElementById('login-password').focus();
+                    }
+                });
             }
         });
+
+        // --- LOGOUT ---
+        window.handleLogout = function() {
+            sessionStorage.removeItem(AUTH_KEY);
+            sessionStorage.removeItem(TENANT_STORAGE_KEY);
+            location.reload();
+        };
+
+        // --- REFRESH ---
+        window.refreshDashboard = function() {
+            if (TENANT_ID) initDashboard();
+        };
+
+        // --- TENANT LOADER ---
+        async function loadTenantsAndInit() {
+            try {
+                const { data: tenants, error } = await supabase
+                    .from('tenants')
+                    .select('id, name')
+                    .order('name');
+
+                if (error) throw error;
+
+                const selector = document.getElementById('tenant-selector');
+                selector.innerHTML = '';
+
+                tenants.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.name;
+                    selector.appendChild(opt);
+                });
+
+                // Restore last selected tenant, or URL param, or first in list
+                const urlTenant = new URLSearchParams(window.location.search).get('tenant');
+                const savedTenant = sessionStorage.getItem(TENANT_STORAGE_KEY);
+                const defaultTenant = urlTenant || savedTenant || (tenants.length > 0 ? tenants[0].id : null);
+
+                if (defaultTenant && tenants.some(t => t.id === defaultTenant)) {
+                    selector.value = defaultTenant;
+                } else if (tenants.length > 0) {
+                    selector.value = tenants[0].id;
+                }
+
+                TENANT_ID = selector.value;
+                sessionStorage.setItem(TENANT_STORAGE_KEY, TENANT_ID);
+
+                // Listen for changes
+                selector.addEventListener('change', (e) => {
+                    TENANT_ID = e.target.value;
+                    sessionStorage.setItem(TENANT_STORAGE_KEY, TENANT_ID);
+                    initDashboard();
+                });
+
+                initDashboard();
+
+            } catch (err) {
+                console.error('Failed to load tenants:', err);
+                document.getElementById('debug-area').textContent = 'Tenant-Fehler: ' + err.message;
+            }
+        }
 
         // --- DATA LOGIC ---
         async function initDashboard() {
@@ -385,7 +487,6 @@
                 // Render Filter
                 renderCampaignFilter(allLeads);
 
-                renderLeadsTable(allLeads);
                 renderLeadsTable(allLeads);
 
                 // Setup Search Listener

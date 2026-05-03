@@ -89,11 +89,45 @@ Wenn das Studio unsere Standard-Landingpage nutzt (`test_page.html`), ist alles 
 
 ---
 
-## 5. Testen & Go-Live
+## 5. N8N Webhook-Trigger prüfen
 
-1.  Gehe auf die Kunden-Webseite mit dem Registrierungs-Widget.
-2.  Melde dich als Test-Scout an.
-3.  Prüfe den Redirect zur Scout App.
-4.  Prüfe, ob der WhatsApp-Text korrekt geladen wird (Datenbank-Text).
-5.  Sende einen Test-Link an dich selbst.
-6.  Klicke den Link und prüfe, ob du auf der korrekten Landingpage landest.
+Die Datenbank sendet bei jedem neuen Lead (INSERT in `invites`) und jeder neuen Scout-Registrierung (INSERT in `scouts`) automatisch einen HTTP POST an N8N. Dies geschieht über PostgreSQL-Trigger mit `pg_net`.
+
+**Prüfen ob die Trigger aktiv sind:**
+
+```sql
+SELECT tgname, tgrelid::regclass as on_table
+FROM pg_trigger
+WHERE tgrelid IN ('invites'::regclass, 'scouts'::regclass)
+AND tgname NOT LIKE 'RI_%';
+```
+
+**Erwartetes Ergebnis:**
+
+| Trigger | Tabelle | N8N URL |
+|:--|:--|:--|
+| `lead_in_webhook` | `invites` | `https://n8n.simki.cloud/webhook/lead-in` |
+| `scout_registered_webhook` | `scouts` | `https://n8n.simki.cloud/webhook/scout-registered` |
+
+Falls die Trigger fehlen, müssen sie per SQL-Migration erstellt werden (siehe [07_n8n_automation_setup.md](./07_n8n_automation_setup.md)).
+
+> **WICHTIG:** Die Trigger NICHT über das Supabase Dashboard ("Database Webhooks") erstellen – das Dashboard sendet einen leeren Body `{}` statt der echten Daten!
+
+> **WICHTIG:** Der N8N Workflow "SIMscouting base" muss **Published** sein, sonst funktioniert die Production-URL nicht.
+
+---
+
+## 6. Testen & Go-Live
+
+1. Gehe auf die Kunden-Webseite mit dem Registrierungs-Widget.
+2. Melde dich als Test-Scout an.
+3. Prüfe den Redirect zur Scout App.
+4. Prüfe, ob der WhatsApp-Text korrekt geladen wird (Datenbank-Text).
+5. Sende einen Test-Link an dich selbst.
+6. Klicke den Link und prüfe, ob du auf der korrekten Landingpage landest.
+7. Fülle das Lead-Formular aus und prüfe:
+   - ✅ Eintrag in `invites` mit korrekter `scout_id` und `campaign_id`
+   - ✅ `net._http_response` zeigt `status_code: 200`
+   - ✅ N8N Executions: Neue Ausführung, alle 6 Nodes grün
+   - ✅ E-Mail ans Studio angekommen
+   - ✅ E-Mail an Scout angekommen
