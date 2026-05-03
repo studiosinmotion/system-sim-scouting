@@ -127,3 +127,25 @@
 - **Sortierung & Filter:** Tabellen sortierbar nach Datum, Name, Kampagne. Live-Filter für Kampagnen.
 - **Detail-Ansichten:** Modals (Popups) für Scout-Details und Kampagnen-Details.
 - **Visualisierung:** Farbige Badges für Kampagnen und Icons für Quellen (WhatsApp, Mail, etc.).
+
+## 16. Admin Dashboard v3.0 (Session & Multi-Tenant)
+
+**Ziel:** Persistente Authentifizierung und dynamische Tenant-Auswahl.
+
+- **Session-Login:** `prompt()` durch visuelles Login-Formular mit `sessionStorage` ersetzt. Kein Re-Login bei Reload. Session endet beim Schließen des Tabs.
+- **Logout-Button:** Manuelles Abmelden über Icon im Header.
+- **Tenant-Selector:** Dropdown im Header lädt alle Tenants aus der DB (`tenants`-Tabelle). Dashboard aktualisiert sich dynamisch ohne Reload.
+- **Tenant-Priorität:** 1. URL-Parameter `?tenant=...` → 2. Letzte Session-Auswahl → 3. Erster Tenant alphabetisch.
+- Doku: [15_admin_dashboard_features.md](./15_admin_dashboard_features.md)
+
+## 17. Closed Loop Fix (Website-Integration)
+
+**Ziel:** Leads aus dem Freeda-Kontaktformular der SIM-Website im Scouting-System erfassen.
+
+- **Problem:** Das `ProductInquiryModal` auf der SIM-Website schickte Formulardaten nur an Freeda, nicht an Supabase. Leads über Referral-Links wurden nicht im Scouting-System gespeichert.
+- **Lösung:** Nach erfolgreichem Freeda-Submit wird zusätzlich ein `INSERT` in die Supabase `invites`-Tabelle gemacht (nur wenn `scout_id` vorhanden).
+- **Architektur:** `widget.js` (SDK) speichert `ref`, `campaign`, `source` aus URL in `localStorage`. `ProductInquiryModal` nutzt `SimScouting.supabase` für den Insert.
+- **Failsafe:** Supabase-Insert ist non-blocking. Wenn er scheitert, bleibt der Freeda-Submit trotzdem erfolgreich.
+- **CDN-Fix:** `scout_reg.js` nutzt `cdn.jsdelivr.net` statt `esm.sh` (stabiler, weniger Adblocker-Probleme).
+- **N8N E-Mail Template:** Scout-Benachrichtigung als HTML-Mail (hellgrauer Hintergrund, weiße Card, SIM-Branding).
+- **N8N Expression-Fix:** Pfade korrigiert von `body.record.lead_data.first_name` zu `body.record.first_name`.

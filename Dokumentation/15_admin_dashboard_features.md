@@ -74,3 +74,30 @@ Die Tabelle visualisiert nun direkt, _wie_ der Lead geworben wurde (Spalte "Quel
 3.  **Top-Scouts Belohnen:**
     - Schau auf das **Leaderboard**.
     - Klicke auf den besten Scout, um zu prüfen, wen er alles geworben hat (Validierung).
+
+## 4. Version 3.0 Updates (Mai 2026)
+
+### A. Session-basiertes Login
+
+Der alte `prompt()`-Dialog wurde durch ein visuelles Login-Formular mit Logo ersetzt.
+
+- **Persistenz:** Login-Status wird in `sessionStorage` gespeichert → Kein Re-Login bei Seiten-Reload.
+- **Sicherheit:** Session endet automatisch beim Schließen des Browser-Tabs.
+- **Logout:** Über das 🚪-Icon oben rechts im Header kann man sich manuell abmelden.
+- **Passwort:** Weiterhin `admin123` (Frontend-Schutz).
+
+### B. Dynamischer Tenant-Selector
+
+Im Header befindet sich ein Dropdown-Menü, das alle Tenants direkt aus der Datenbank (`tenants`-Tabelle) lädt.
+
+- **Wechsel ohne Reload:** Bei Auswahl eines neuen Tenants aktualisiert sich das gesamte Dashboard sofort.
+- **Session-Speicher:** Der zuletzt gewählte Tenant wird in `sessionStorage` gemerkt und beim nächsten Besuch wiederhergestellt.
+- **Prioritätsreihenfolge:**
+  1. URL-Parameter `?tenant=UUID` (höchste Priorität, z.B. für Bookmarks)
+  2. Letzte Session-Auswahl
+  3. Erster Tenant alphabetisch (Fallback)
+
+### C. Refresh & Logout Buttons
+
+- **Refresh (🔄):** Lädt die Daten des aktuellen Tenants neu, ohne die Seite zu reloaden.
+- **Logout (🚪):** Löscht Session und Tenant-Auswahl, zeigt Login-Formular.
