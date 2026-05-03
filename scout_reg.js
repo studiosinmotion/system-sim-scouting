@@ -44,9 +44,24 @@ class SimScoutRegister extends HTMLElement {
                     --primary-hover: #0096b4;
                     --bg-color: #ffffff;
                     --text-color: #333333;
+                    --label-color: #666666;
                     --input-bg: #f9f9f9;
                     --input-border: #e0e0e0;
+                    --input-text: #333333;
                     --radius: 12px;
+                }
+
+                :host([theme="dark"]) {
+                    --bg-color: #1a1a1a;
+                    --text-color: #ffffff;
+                    --label-color: #aaaaaa;
+                    --input-bg: #2a2a2a;
+                    --input-border: #444444;
+                    --input-text: #ffffff;
+                }
+
+                :host([transparent="true"]) {
+                    --bg-color: transparent;
                 }
 
                 .container {
@@ -82,7 +97,7 @@ class SimScoutRegister extends HTMLElement {
                 label {
                     font-size: 0.9rem;
                     font-weight: 600;
-                    color: #666;
+                    color: var(--label-color);
                 }
 
                 input {
@@ -91,6 +106,7 @@ class SimScoutRegister extends HTMLElement {
                     border-radius: 8px;
                     font-size: 1rem;
                     background: var(--input-bg);
+                    color: var(--input-text);
                     transition: all 0.2s ease;
                 }
 
@@ -136,7 +152,6 @@ class SimScoutRegister extends HTMLElement {
             </style>
 
             <div class="container">
-                <h2>Werde Scout & trainiere gratis</h2>
                 <form id="scout-form">
                     <div class="form-group">
                         <label for="first_name">Vorname</label>
@@ -151,11 +166,25 @@ class SimScoutRegister extends HTMLElement {
                         <input type="email" id="email" name="email" placeholder="max@beispiel.de" required>
                     </div>
                     
+                    <div class="checkbox-group" style="display: flex; gap: 0.5rem; align-items: flex-start; margin-top: 0.5rem;">
+                        <input type="checkbox" id="privacy" name="privacy" required style="margin-top: 0.2rem; cursor: pointer;">
+                        <label for="privacy" style="font-size: 0.8rem; font-weight: normal; line-height: 1.4;">
+                            Ich stimme der Verarbeitung meiner Daten zur Abwicklung des Programms zu und akzeptiere die 
+                            <a id="privacy-link" href="/datenschutz" target="_blank" style="color: var(--primary-color); text-decoration: none;">Datenschutzerklärung</a>.
+                        </label>
+                    </div>
+
                     <button type="submit" id="submit-btn">Jetzt anmelden</button>
                     <div class="error" id="error-msg"></div>
                 </form>
             </div>
         `;
+
+        // Set privacy URL if provided
+        const privacyUrl = this.getAttribute('privacy-url');
+        if (privacyUrl) {
+            this.shadowRoot.getElementById('privacy-link').href = privacyUrl;
+        }
 
         this.shadowRoot.getElementById('scout-form').addEventListener('submit', this.handleSubmit.bind(this));
     }
@@ -182,7 +211,6 @@ class SimScoutRegister extends HTMLElement {
             const { data, error } = await supabase
                 .from('scouts')
                 .insert({
-                    tenant_id: this.tenantId,
                     tenant_id: this.tenantId,
                     first_name: firstName,
                     last_name: lastName,

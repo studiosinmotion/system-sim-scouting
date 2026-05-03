@@ -144,9 +144,17 @@ Unser erster Proof-of-Concept (PoC).
 
 ---
 
-## 8. Nächste Schritte (Roadmap)
+## 8. Status Quo & Nächste Schritte (Roadmap)
 
-1. **Datenbank:** Supabase Tabellen final anlegen (via AntiGravity Skript).
-2. **Widget-Bau:** Entwicklung des einbettbaren Formulars (Web Component).
-3. **Scout-Link:** Logik bauen, die den Link `ref=ID` generiert.
-4. **End-to-End Test:** Einmal den kompletten Kreis mit Dummy-Daten durchlaufen.
+**Erledigt (Stand Mai 2026):**
+* **Datenbank:** Supabase Tabellen (`tenants`, `campaigns`, `scouts`, `invites`) angelegt und konfiguriert.
+* **Widget-Bau:** Einbettbares Formular (`scout_reg.js`) als Web Component entwickelt. Unterstützt Theme-Anpassungen (Dark Mode, Transparent) und zwingende DSGVO-Checkbox.
+* **Third-Party Integration:** Universal Tracking SDK (`widget.js`) fertiggestellt. Unterstützt das Befüllen von Hidden-Fields (`scout_id`, `campaign_id`) in bestehenden Kundenformularen (HubSpot, WordPress, etc.).
+* **Dynamic Branding:** Scout App (`scout_app.html`) unterstützt nun dynamische Hintergrund-Medien (Videos/Bilder) sowie Farben und Logos pro Mandant (gespeichert in `tenants.settings`).
+* **Dokumentation:** `integration_guide_formulare.md` für Endkunden/Studios erstellt.
+
+**Als Nächstes (To-Dos):**
+1. **Admin-Bereich (Dashboard):** Entwicklung einer Benutzeroberfläche für Mandanten (Studios), um ihre Branding-Einstellungen (Logo, Farben, Hintergrundvideo) ohne Datenbankzugriff bequem zu verwalten.
+2. **Kampagnen-Management:** UI zum Anlegen und Verwalten von `campaigns` im Admin-Bereich.
+3. **n8n Automationen:** Finales Setup der n8n-Workflows für Benachrichtigungen (Scout-Belohnung, Studio-Lead-Benachrichtigung).
+4. **End-to-End Test:** Kompletten Kreis mit echten Live-Daten auf einem Produktivsystem durchspielen.
