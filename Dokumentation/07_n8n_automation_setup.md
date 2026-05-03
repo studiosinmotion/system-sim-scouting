@@ -70,7 +70,7 @@ CREATE OR REPLACE FUNCTION public.notify_n8n_scout_registered()
 RETURNS TRIGGER AS $$
 BEGIN
   PERFORM net.http_post(
-    url := 'https://n8n.simki.cloud/webhook/scout-registered'::text,
+    url := 'https://n8n.simki.cloud/webhook/538b9544-29a6-4d1d-a925-cba5fa8adff8'::text,
     body := jsonb_build_object(
       'type', TG_OP,
       'table', TG_TABLE_NAME,
@@ -128,12 +128,12 @@ Erwartetes Ergebnis bei Erfolg: `status_code: 200`, `timed_out: false`, `error_m
 
 ---
 
-## Teil 2: N8N Workflow ("SIMscouting base")
+## Teil 2: N8N Workflows
 
-### Workflow-Name in N8N: `SIMscouting base`
-### Ordner: `SIM scouting`
+### Workflow A: "SIMscouting base" (Lead-Benachrichtigung)
+**Ordner:** `SIM scouting`
 
-### Node-Kette:
+#### Node-Kette:
 
 `Webhook` → `Kampagne auslesen` → `Scout auslesen` → `Belohnungs-Logik` → `E-Mail 2 Company` → `E-Mail 2 Scout`
 
@@ -184,6 +184,33 @@ Erwartetes Ergebnis bei Erfolg: `status_code: 200`, `timed_out: false`, `error_m
 | To | Scout E-Mail (`{{ Scout.email }}`) |
 | Subject | `High Five, {{ Scout.first_name }}! ✋` |
 | Body | Bestätigung mit Belohnungshinweis |
+
+---
+
+### Workflow B: "Scout Welcome" (Willkommens-Mail)
+**Ordner:** `SIM scouting`
+
+#### Node-Kette:
+
+`Webhook` → `Send Email`
+
+#### Node 1: Webhook (Trigger)
+
+| Einstellung | Wert |
+|:--|:--|
+| HTTP Method | `POST` |
+| Path | `538b9544-29a6-4d1d-a925-cba5fa8adff8` |
+| Authentication | None |
+| **Production-URL** | `https://n8n.simki.cloud/webhook/538b9544-29a6-4d1d-a925-cba5fa8adff8` |
+
+#### Node 2: Send Email (SMTP)
+
+| Einstellung | Wert |
+|:--|:--|
+| To | `{{ $json.body.record.email }}` |
+| Subject | `Willkommen an Bord, {{ $json.body.record.first_name }}! 🎉` |
+| Content Type | HTML |
+| Body | HTML-Template mit 3-Schritte-Anleitung + CTA-Button zum Scout-Dashboard |
 
 ---
 
