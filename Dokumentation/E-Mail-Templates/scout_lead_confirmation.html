@@ -6,16 +6,16 @@
 </head>
 <body style="margin: 0; padding: 0; background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
 
-  <!-- Outer Container (grauer Hintergrund) -->
+  <!-- Outer Container -->
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0f2f5; padding: 40px 20px 0 20px;">
     <tr>
       <td align="center">
 
-        <!-- Logo + Headline (im grauen Bereich, ÜBER der Card) -->
+        <!-- Logo + Headline (TENANT-Branding!) -->
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px;">
           <tr>
             <td style="padding: 0 0 28px 0; text-align: center;">
-              <img src="https://simscouting.studios-in-motion.de/logo_studios-in-motion.png" alt="Studios in Motion" width="200" style="display: inline-block; margin-bottom: 16px;" />
+              {{ $('Webhook').item.json.body.tenant.logo_url ? '<img src="' + $('Webhook').item.json.body.tenant.logo_url + '" alt="' + $('Webhook').item.json.body.tenant.name + '" width="200" style="display: inline-block; margin-bottom: 16px;" />' : '<div style="margin-bottom: 16px; color: #1a1a2e; font-size: 20px; font-weight: 700;">' + $('Webhook').item.json.body.tenant.name + '</div>' }}
               <h1 style="margin: 0; color: #1a1a2e; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">
                 🎉 High Five, neuer Lead!
               </h1>
@@ -23,14 +23,12 @@
           </tr>
         </table>
 
-        <!-- Inner Card (weiße Box) -->
+        <!-- Inner Card -->
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
 
-          <!-- Body Content -->
           <tr>
             <td style="padding: 36px 40px 20px 40px;">
               
-              <!-- Greeting -->
               <p style="margin: 0 0 20px; color: #1a1a2e; font-size: 17px; line-height: 1.6;">
                 Hey <strong>{{ $('Scout auslesen').item.json.first_name }}</strong>,
               </p>
@@ -44,63 +42,41 @@
                 <tr>
                   <td style="padding: 20px 24px;">
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr><td style="padding: 4px 0; color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Name</td></tr>
+                      <tr><td style="padding: 0 0 14px; color: #1a1a2e; font-size: 16px; font-weight: 600;">{{ $('Webhook').item.json.body.record.first_name }} {{ $('Webhook').item.json.body.record.last_name }}</td></tr>
 
-                      <!-- Name (immer vorhanden) -->
-                      <tr>
-                        <td style="padding: 4px 0; color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Name</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 0 0 14px; color: #1a1a2e; font-size: 16px; font-weight: 600;">
-                          {{ $('Webhook').item.json.body.record.first_name }} {{ $('Webhook').item.json.body.record.last_name }}
-                        </td>
-                      </tr>
-
-                      <!-- Telefon (nur wenn vorhanden) -->
                       {{ $('Webhook').item.json.body.record.phone ? '<tr><td style="padding: 4px 0; color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Telefon</td></tr><tr><td style="padding: 0 0 14px; color: #1a1a2e; font-size: 16px;">' + $('Webhook').item.json.body.record.phone + '</td></tr>' : '' }}
-
                     </table>
                   </td>
                 </tr>
               </table>
 
-              <!-- Motivational Text -->
               <p style="margin: 0 0 8px; color: #444; font-size: 15px; line-height: 1.7;">
                 Super, dass du uns weiterempfiehlst! Wir kümmern uns jetzt um deinen Kontakt und halten dich auf dem Laufenden.
               </p>
-
             </td>
           </tr>
 
-          <!-- Divider -->
-          <tr>
-            <td style="padding: 0 40px;">
-              <hr style="border: none; border-top: 1px solid #eee; margin: 0;" />
-            </td>
-          </tr>
+          <tr><td style="padding: 0 40px;"><hr style="border: none; border-top: 1px solid #eee; margin: 0;" /></td></tr>
 
-          <!-- Footer -->
           <tr>
             <td style="padding: 24px 40px 32px; text-align: center;">
-              <p style="margin: 0 0 4px; color: #aaa; font-size: 12px;">
-                Powered by
-              </p>
-              <p style="margin: 0;">
-                <a href="https://www.studios-in-motion.de/tools/empfehlungs-tool/" style="color: #009fe3; font-size: 14px; font-weight: 600; text-decoration: none;">
-                  SIM-Scouting
-                </a>
-              </p>
+              <p style="margin: 0 0 4px; color: #aaa; font-size: 12px;">Powered by</p>
+              <p style="margin: 0;"><a href="https://www.studios-in-motion.de/tools/empfehlungs-tool/" style="color: #009fe3; font-size: 14px; font-weight: 600; text-decoration: none;">SIM-Scouting</a></p>
             </td>
           </tr>
-
         </table>
-        <!-- /Inner Card -->
 
-        <!-- Sub-Footer -->
+        <!-- Impressum: TENANT-Daten (dynamisch) -->
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px;">
           <tr>
             <td style="padding: 20px 40px; text-align: center;">
-              <p style="margin: 0; color: #bbb; font-size: 11px; line-height: 1.5;">
+              <p style="margin: 0 0 4px; color: #999; font-size: 11px; line-height: 1.5;">
                 Diese E-Mail wurde automatisch gesendet, weil sich ein Kontakt über deinen persönlichen Empfehlungslink registriert hat.
+              </p>
+              <p style="margin: 8px 0 0; color: #aaa; font-size: 10px; line-height: 1.5;">
+                {{ $('Webhook').item.json.body.tenant.name }}{{ $('Webhook').item.json.body.tenant.address ? ' · ' + $('Webhook').item.json.body.tenant.address : '' }}<br>
+                {{ $('Webhook').item.json.body.tenant.website ? '<a href="' + $('Webhook').item.json.body.tenant.website + '" style="color: #999; text-decoration: none;">' + $('Webhook').item.json.body.tenant.website.replace('https://','').replace('http://','') + '</a>' : '' }}
               </p>
             </td>
           </tr>
@@ -109,6 +85,5 @@
       </td>
     </tr>
   </table>
-
 </body>
 </html>
