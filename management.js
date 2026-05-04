@@ -135,10 +135,12 @@ window.openTenantModal = async function(tenantId) {
     document.getElementById('rewards-section').classList.toggle('hidden', !isEdit);
 
     // Reset form
-    ['tf-id','tf-name','tf-email','tf-contact','tf-phone','tf-website','tf-address','tf-logo'].forEach(id => {
+    ['tf-id','tf-name','tf-email','tf-contact','tf-phone','tf-website','tf-address','tf-logo','tf-color-hex'].forEach(id => {
         document.getElementById(id).value = '';
     });
     document.getElementById('tf-status').value = 'active';
+    document.getElementById('tf-color').value = '#009fe3';
+    document.getElementById('tf-color-hex').value = '#009fe3';
 
     if (isEdit) {
         const t = tenantsData.find(x => x.id === tenantId);
@@ -151,6 +153,8 @@ window.openTenantModal = async function(tenantId) {
             document.getElementById('tf-website').value = t.website || '';
             document.getElementById('tf-address').value = t.address || '';
             document.getElementById('tf-logo').value = t.logo_url || '';
+            document.getElementById('tf-color').value = t.primary_color || '#009fe3';
+            document.getElementById('tf-color-hex').value = t.primary_color || '#009fe3';
             document.getElementById('tf-status').value = t.status || 'active';
         }
         await loadRewards(tenantId);
@@ -178,6 +182,7 @@ window.saveTenant = async function() {
         website: document.getElementById('tf-website').value.trim() || null,
         address: document.getElementById('tf-address').value.trim() || null,
         logo_url: document.getElementById('tf-logo').value.trim() || null,
+        primary_color: document.getElementById('tf-color-hex').value.trim() || '#009fe3',
         status: document.getElementById('tf-status').value
     };
 

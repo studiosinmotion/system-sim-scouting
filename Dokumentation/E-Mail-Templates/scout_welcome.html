@@ -91,7 +91,7 @@
                 <tr>
                   <td align="center">
                     <a href="https://simscouting.studios-in-motion.de/scout_app.html?id={{ $json.body.record.id }}" 
-                       style="display: inline-block; background: linear-gradient(135deg, #009fe3 0%, #0077b6 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 700; font-size: 15px; letter-spacing: 0.3px;">
+                       style="display: inline-block; background-color: {{ $json.body.tenant.primary_color || '#009fe3' }}; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 700; font-size: 15px; letter-spacing: 0.3px;">
                       Zum Scout-Dashboard →
                     </a>
                   </td>

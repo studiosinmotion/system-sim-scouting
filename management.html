@@ -169,6 +169,14 @@
                     <input id="tf-logo" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="https://...logo.png">
                     <p class="text-xs text-slate-500 mt-1">Logo auf den Scouting-Server hochladen und URL hier einfügen</p>
                 </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Primärfarbe</label>
+                    <div class="flex items-center gap-3">
+                        <input id="tf-color" type="color" value="#009fe3" class="h-10 w-14 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer" oninput="document.getElementById('tf-color-hex').value=this.value">
+                        <input id="tf-color-hex" type="text" value="#009fe3" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm font-mono" placeholder="#009fe3" oninput="document.getElementById('tf-color').value=this.value">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Wird für Buttons und Akzente in E-Mails und Widgets verwendet</p>
+                </div>
 
                 <!-- Rewards Section (nur bei Bearbeitung) -->
                 <div id="rewards-section" class="hidden border-t border-slate-700 pt-4 mt-4">
