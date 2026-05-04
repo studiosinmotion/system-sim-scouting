@@ -177,6 +177,21 @@
                     </div>
                     <p class="text-xs text-slate-500 mt-1">Wird für Buttons und Akzente in E-Mails und Widgets verwendet</p>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Hintergrund-Medien URL</label>
+                        <input id="tf-bg-media" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="https://...bild.jpg oder video.mp4">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Medien-Typ</label>
+                        <select id="tf-bg-type" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm">
+                            <option value="none">Keins</option>
+                            <option value="image">Bild</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 -mt-2">Hintergrundbild/Video für die Scout-App. Auf den Scouting-Server hochladen.</p>
 
                 <!-- Rewards Section (nur bei Bearbeitung) -->
                 <div id="rewards-section" class="hidden border-t border-slate-700 pt-4 mt-4">

@@ -342,37 +342,62 @@
                     renderRewardBanner(rewardConfig);
                 }
 
-                // 3. Fetch Tenant Settings for Logo and Background
+                // 3. Fetch Tenant Branding (Logo, Color, Background)
                 try {
-                    const { data: tenantData } = await supabase.from('tenants').select('settings').eq('id', campaignTenantId).single();
-                    if (tenantData && tenantData.settings) {
+                    const { data: tenantData } = await supabase
+                        .from('tenants')
+                        .select('logo_url, primary_color, background_media, background_type')
+                        .eq('id', campaignTenantId)
+                        .single();
+
+                    if (tenantData) {
                         // Apply Logo
-                        if (tenantData.settings.logo_url) {
+                        if (tenantData.logo_url) {
                             const logoEl = document.getElementById('tenant-logo-header');
-                            logoEl.src = tenantData.settings.logo_url;
+                            logoEl.src = tenantData.logo_url;
                             logoEl.classList.remove('hidden');
-                            logoEl.style.display = 'block'; // Override any inline style from onerror
+                            logoEl.style.display = 'block';
+
+                            // Also update footer logo
+                            const footerLogo = document.getElementById('tenant-logo-footer');
+                            if (footerLogo) {
+                                footerLogo.src = tenantData.logo_url;
+                                footerLogo.classList.remove('invert', 'grayscale');
+                            }
+                        }
+
+                        // Apply Primary Color as CSS custom property
+                        if (tenantData.primary_color) {
+                            const c = tenantData.primary_color;
+                            document.documentElement.style.setProperty('--tenant-color', c);
+                            // Update gradient text on scout name
+                            const nameEl = document.getElementById('scout-name');
+                            if (nameEl) {
+                                nameEl.style.background = `linear-gradient(to right, ${c}, ${c}cc)`;
+                                nameEl.style.webkitBackgroundClip = 'text';
+                                nameEl.style.webkitTextFillColor = 'transparent';
+                            }
                         }
 
                         // Apply Background Media
-                        if (tenantData.settings.background_media && tenantData.settings.background_type) {
+                        if (tenantData.background_media && tenantData.background_type && tenantData.background_type !== 'none') {
                             const bgContainer = document.getElementById('bg-media-container');
                             const bgVideo = document.getElementById('bg-video');
                             const bgImage = document.getElementById('bg-image');
                             
                             bgContainer.classList.remove('hidden');
 
-                            if (tenantData.settings.background_type === 'video') {
-                                bgVideo.src = tenantData.settings.background_media;
+                            if (tenantData.background_type === 'video') {
+                                bgVideo.src = tenantData.background_media;
                                 bgVideo.classList.remove('hidden');
-                            } else if (tenantData.settings.background_type === 'image') {
-                                bgImage.src = tenantData.settings.background_media;
+                            } else if (tenantData.background_type === 'image') {
+                                bgImage.src = tenantData.background_media;
                                 bgImage.classList.remove('hidden');
                             }
                         }
                     }
                 } catch (e) {
-                    console.warn('Could not load tenant settings', e);
+                    console.warn('Could not load tenant branding', e);
                 }
             } catch (err) {
                 console.warn('Could not load dynamic campaign settings', err);

@@ -141,6 +141,8 @@ window.openTenantModal = async function(tenantId) {
     document.getElementById('tf-status').value = 'active';
     document.getElementById('tf-color').value = '#009fe3';
     document.getElementById('tf-color-hex').value = '#009fe3';
+    document.getElementById('tf-bg-media').value = '';
+    document.getElementById('tf-bg-type').value = 'none';
 
     if (isEdit) {
         const t = tenantsData.find(x => x.id === tenantId);
@@ -155,6 +157,8 @@ window.openTenantModal = async function(tenantId) {
             document.getElementById('tf-logo').value = t.logo_url || '';
             document.getElementById('tf-color').value = t.primary_color || '#009fe3';
             document.getElementById('tf-color-hex').value = t.primary_color || '#009fe3';
+            document.getElementById('tf-bg-media').value = t.background_media || '';
+            document.getElementById('tf-bg-type').value = t.background_type || 'none';
             document.getElementById('tf-status').value = t.status || 'active';
         }
         await loadRewards(tenantId);
@@ -183,6 +187,8 @@ window.saveTenant = async function() {
         address: document.getElementById('tf-address').value.trim() || null,
         logo_url: document.getElementById('tf-logo').value.trim() || null,
         primary_color: document.getElementById('tf-color-hex').value.trim() || '#009fe3',
+        background_media: document.getElementById('tf-bg-media').value.trim() || null,
+        background_type: document.getElementById('tf-bg-type').value,
         status: document.getElementById('tf-status').value
     };
 
