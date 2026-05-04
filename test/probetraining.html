@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kostenloses Probetraining – Power Gym Berlin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: { DEFAULT: '#e63946', light: '#ff6b7a', dark: '#c1121f' },
+                        gym: { 900: '#0a0a0a', 800: '#141414', 700: '#1e1e1e', 600: '#2a2a2a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-gradient { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%); }
+    </style>
+</head>
+<body class="bg-gym-900 text-white font-sans">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-gym-900/80 backdrop-blur-xl border-b border-white/5">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-black text-lg">PG</div>
+                <span class="text-lg font-bold tracking-tight">Power Gym Berlin</span>
+            </div>
+            <div class="hidden md:flex items-center gap-6 text-sm text-gray-400">
+                <a href="#" class="hover:text-white transition">Kurse</a>
+                <a href="#" class="hover:text-white transition">Preise</a>
+                <a href="#probetraining" class="text-brand font-semibold">Probetraining</a>
+                <a href="empfehlung.html" class="hover:text-white transition">Freunde werben</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient pt-28 pb-20 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1200')] bg-cover bg-center opacity-10"></div>
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <span class="inline-block bg-green-500/20 text-green-400 text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full mb-6 border border-green-500/30">
+                7 Tage kostenlos
+            </span>
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-6 leading-tight">
+                Dein kostenloses<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand to-brand-light">Probetraining</span>
+            </h1>
+            <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                Erlebe 7 Tage lang unser komplettes Angebot: Gerätetraining, Kurse, Wellness. Keine Verpflichtungen, kein Risiko.
+            </p>
+            <a href="#probetraining" class="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-brand/20 text-lg">
+                <i class="fa-solid fa-dumbbell"></i>
+                Jetzt anmelden
+            </a>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-20 px-4 bg-gym-800">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-16">Das erwartet dich</h2>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="bg-gym-700 border border-white/5 rounded-2xl p-6 text-center hover:border-brand/30 transition-all">
+                    <div class="text-3xl mb-3">🏋️</div>
+                    <h3 class="font-bold mb-1">Gerätetraining</h3>
+                    <p class="text-gray-500 text-xs">Modernste Geräte auf 800m²</p>
+                </div>
+                <div class="bg-gym-700 border border-white/5 rounded-2xl p-6 text-center hover:border-brand/30 transition-all">
+                    <div class="text-3xl mb-3">🧘</div>
+                    <h3 class="font-bold mb-1">Gruppenkurse</h3>
+                    <p class="text-gray-500 text-xs">Yoga, Spinning, HIIT & mehr</p>
+                </div>
+                <div class="bg-gym-700 border border-white/5 rounded-2xl p-6 text-center hover:border-brand/30 transition-all">
+                    <div class="text-3xl mb-3">🧖</div>
+                    <h3 class="font-bold mb-1">Wellness</h3>
+                    <p class="text-gray-500 text-xs">Sauna, Dampfbad, Ruhebereich</p>
+                </div>
+                <div class="bg-gym-700 border border-white/5 rounded-2xl p-6 text-center hover:border-brand/30 transition-all">
+                    <div class="text-3xl mb-3">📋</div>
+                    <h3 class="font-bold mb-1">Trainingsplan</h3>
+                    <p class="text-gray-500 text-xs">Individueller Plan inklusive</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lead Form (= Probetraining-Formular) -->
+    <section id="probetraining" class="py-20 px-4">
+        <div class="max-w-lg mx-auto">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold mb-3">Jetzt Probetraining sichern</h2>
+                <p class="text-gray-400 text-sm">Fülle das Formular aus und wir melden uns innerhalb von 24 Stunden bei dir.</p>
+            </div>
+
+            <!-- Referral Info Banner (shows when coming via scout link) -->
+            <div id="referral-banner" class="hidden mb-6 bg-brand/10 border border-brand/20 rounded-xl p-4 text-center">
+                <p class="text-brand text-sm font-semibold">
+                    <i class="fa-solid fa-user-check mr-1"></i>
+                    Du wurdest empfohlen! Dein Empfehler wird benachrichtigt.
+                </p>
+            </div>
+
+            <div class="bg-gym-700 border border-white/5 rounded-2xl p-8 shadow-2xl">
+                <form id="lead-form" class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Vorname *</label>
+                            <input type="text" id="lead-fname" required placeholder="Max"
+                                class="w-full bg-gym-900 border border-white/10 rounded-xl py-3 px-4 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Nachname *</label>
+                            <input type="text" id="lead-lname" required placeholder="Mustermann"
+                                class="w-full bg-gym-900 border border-white/10 rounded-xl py-3 px-4 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Telefon *</label>
+                        <input type="tel" id="lead-phone" required placeholder="0170 12345678"
+                            class="w-full bg-gym-900 border border-white/10 rounded-xl py-3 px-4 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">E-Mail (optional)</label>
+                        <input type="email" id="lead-email" placeholder="max@example.de"
+                            class="w-full bg-gym-900 border border-white/10 rounded-xl py-3 px-4 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition">
+                    </div>
+
+                    <div id="form-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3 text-center"></div>
+
+                    <button type="submit" id="submit-btn"
+                        class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-brand/20 flex items-center justify-center gap-2 text-lg">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Probetraining anfragen
+                    </button>
+
+                    <p class="text-center text-gray-600 text-[10px] leading-relaxed">
+                        Mit dem Absenden stimmst du unserer Datenschutzerklärung zu. Wir melden uns telefonisch bei dir, um einen Termin zu vereinbaren.
+                    </p>
+                </form>
+
+                <!-- Success View -->
+                <div id="success-view" class="hidden text-center py-8">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="text-2xl font-bold mb-2">Vielen Dank!</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                        Wir haben deine Anfrage erhalten und melden uns innerhalb von 24 Stunden bei dir, um dein Probetraining zu planen.
+                    </p>
+                    <a href="empfehlung.html" class="inline-flex items-center gap-2 text-brand hover:text-brand-light text-sm font-semibold transition">
+                        <i class="fa-solid fa-gift"></i>
+                        Du willst auch Freunde werben?
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 border-t border-white/5">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-black text-sm">PG</div>
+                <span class="font-semibold">Power Gym Berlin</span>
+            </div>
+            <div>Demo-Seite für SIM-Scouting Testumgebung</div>
+            <div class="flex items-center gap-1 text-gray-700">
+                Powered by <a href="https://www.studios-in-motion.de/tools/empfehlungs-tool/" class="text-gray-500 hover:text-brand ml-1 font-semibold">SIM-Scouting</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SIM-Scouting SDK (Widget) -->
+    <script type="module" src="https://simscouting.studios-in-motion.de/widget.js"></script>
+
+    <script type="module">
+        // Wait for SDK to initialize
+        setTimeout(() => {
+            const sdk = window.SimScouting;
+            if (!sdk) { console.warn('SIM-SDK not loaded'); return; }
+
+            // Show referral banner if scout is active
+            const scoutId = sdk.getScoutId();
+            if (scoutId) {
+                document.getElementById('referral-banner').classList.remove('hidden');
+                console.log('Referral active:', scoutId);
+            }
+
+            // Lead Form Submission
+            const form = document.getElementById('lead-form');
+            const btn = document.getElementById('submit-btn');
+            const errorEl = document.getElementById('form-error');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Sende...';
+                errorEl.classList.add('hidden');
+
+                const fname = document.getElementById('lead-fname').value.trim();
+                const lname = document.getElementById('lead-lname').value.trim();
+                const phone = document.getElementById('lead-phone').value.trim();
+                const email = document.getElementById('lead-email').value.trim();
+
+                const source = sdk.getSource() || 'direct';
+                const campaign = sdk.getCampaign();
+
+                // Campaign ID für PowerGym
+                const CAMPAIGN_ID = 'c0756349-1fdc-425b-afe9-a2d5c518fc34';
+
+                const payload = {
+                    campaign_id: CAMPAIGN_ID,
+                    scout_id: scoutId || null,
+                    first_name: fname,
+                    last_name: lname,
+                    phone: phone,
+                    lead_data: {
+                        first_name: fname,
+                        last_name: lname,
+                        phone: phone,
+                        email: email || null,
+                        source: source,
+                        campaign: campaign,
+                        form: 'probetraining',
+                        product: '7 Tage Friends Pass'
+                    },
+                    status: 'pending'
+                };
+
+                try {
+                    const { error } = await sdk.supabase
+                        .from('invites')
+                        .insert(payload);
+
+                    if (error) throw error;
+
+                    // Track conversion
+                    await sdk.trackConversion('probetraining_form', {
+                        name: `${fname} ${lname}`,
+                        source: source
+                    });
+
+                    // Show success
+                    form.style.display = 'none';
+                    document.getElementById('success-view').classList.remove('hidden');
+
+                } catch (err) {
+                    console.error('Submission failed:', err);
+                    errorEl.textContent = 'Fehler beim Senden: ' + (err.message || 'Bitte versuche es erneut.');
+                    errorEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Probetraining anfragen';
+                }
+            });
+        }, 500);
+    </script>
+</body>
+</html>

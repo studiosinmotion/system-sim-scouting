@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freunde werben – Power Gym Berlin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: { DEFAULT: '#e63946', light: '#ff6b7a', dark: '#c1121f' },
+                        gym: { 900: '#0a0a0a', 800: '#141414', 700: '#1e1e1e', 600: '#2a2a2a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-gradient { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%); }
+        .glow { box-shadow: 0 0 40px rgba(230, 57, 70, 0.15); }
+    </style>
+</head>
+<body class="bg-gym-900 text-white font-sans">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-gym-900/80 backdrop-blur-xl border-b border-white/5">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-black text-lg">PG</div>
+                <span class="text-lg font-bold tracking-tight">Power Gym Berlin</span>
+            </div>
+            <div class="hidden md:flex items-center gap-6 text-sm text-gray-400">
+                <a href="#" class="hover:text-white transition">Kurse</a>
+                <a href="#" class="hover:text-white transition">Preise</a>
+                <a href="probetraining.html" class="hover:text-white transition">Probetraining</a>
+                <a href="#empfehlen" class="text-brand font-semibold">Freunde werben</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient pt-28 pb-20 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200')] bg-cover bg-center opacity-10"></div>
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <span class="inline-block bg-brand/20 text-brand text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full mb-6 border border-brand/30">
+                Empfehlungsprogramm
+            </span>
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-6 leading-tight">
+                Empfehle uns weiter.<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand to-brand-light">Kassiere Belohnungen.</span>
+            </h1>
+            <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                Du trainierst bei uns und bist zufrieden? Dann empfehle uns deinen Freunden und sichere dir exklusive Prämien für jeden neuen Kunden!
+            </p>
+            <a href="#empfehlen" class="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-brand/20 text-lg">
+                <i class="fa-solid fa-gift"></i>
+                Jetzt Scout werden
+            </a>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section class="py-20 px-4 bg-gym-800">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-16">So funktioniert's</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-brand/10 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-brand/20 transition-colors border border-brand/20">
+                        <i class="fa-solid fa-user-plus text-brand text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">1. Registrieren</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Melde dich unten als Scout an und erhalte deinen persönlichen Empfehlungslink.</p>
+                </div>
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-brand/10 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-brand/20 transition-colors border border-brand/20">
+                        <i class="fa-solid fa-share-nodes text-brand text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">2. Teilen</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Teile deinen Link per WhatsApp, E-Mail oder QR-Code mit Freunden und Bekannten.</p>
+                </div>
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-brand/10 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-brand/20 transition-colors border border-brand/20">
+                        <i class="fa-solid fa-trophy text-brand text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">3. Profitieren</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Für jeden Freund, der sich anmeldet, kassierst du deine Belohnung. Garantiert!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rewards Preview -->
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-4">Deine Belohnungen</h2>
+            <p class="text-gray-400 text-center mb-12">Für jede erfolgreiche Empfehlung wartet eine Prämie auf dich</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-gym-700 border border-white/5 rounded-2xl p-8 glow relative overflow-hidden group hover:border-brand/30 transition-all">
+                    <div class="absolute top-0 right-0 bg-brand/20 text-brand text-[10px] uppercase tracking-wider font-bold px-4 py-1.5 rounded-bl-xl">Sofort-Prämie</div>
+                    <div class="text-5xl mb-4">🎁</div>
+                    <h3 class="text-xl font-bold mb-2">Gratis Monatsbeitrag</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Für jede erfolgreiche Empfehlung erhältst du einen Monat beitragsfrei!</p>
+                </div>
+                <div class="bg-gym-700 border border-white/5 rounded-2xl p-8 relative overflow-hidden group hover:border-brand/30 transition-all">
+                    <div class="absolute top-0 right-0 bg-indigo-500/20 text-indigo-400 text-[10px] uppercase tracking-wider font-bold px-4 py-1.5 rounded-bl-xl">Jackpot</div>
+                    <div class="text-5xl mb-4">🎟️</div>
+                    <h3 class="text-xl font-bold mb-2">150€ Amazon-Gutschein</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Jede Empfehlung ist ein Los! Am Ende des Quartals verlosen wir den Hauptpreis.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scout Registration (embedded Scout App) -->
+    <section id="empfehlen" class="py-20 px-4 bg-gym-800">
+        <div class="max-w-md mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-4">Werde jetzt Scout!</h2>
+            <p class="text-gray-400 mb-8 text-sm">Registriere dich und erhalte deinen persönlichen Empfehlungslink.</p>
+            
+            <!-- Embedded Scout App via iframe -->
+            <div class="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                <iframe 
+                    src="https://simscouting.studios-in-motion.de/scout_app.html?tenant=79a37c78-7bdf-45e4-a631-fb47926d054d&campaign=c0756349-1fdc-425b-afe9-a2d5c518fc34"
+                    width="100%" 
+                    height="550" 
+                    style="border: none; background: #18181b;"
+                    title="Scout Registrierung"
+                ></iframe>
+            </div>
+
+            <p class="text-gray-600 text-xs mt-6">
+                Bereits registriert? <a href="https://simscouting.studios-in-motion.de/scout_app.html?tenant=79a37c78-7bdf-45e4-a631-fb47926d054d" class="text-brand hover:underline">Zum Scout-Dashboard →</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- Testimonial / Social Proof -->
+    <section class="py-16 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-gym-700 border border-white/5 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+                <div class="w-20 h-20 bg-brand/20 rounded-full flex items-center justify-center text-4xl shrink-0">💬</div>
+                <div>
+                    <p class="text-gray-300 text-lg leading-relaxed italic mb-4">
+                        „Ich habe schon 3 Freunde geworben und trainiere jetzt 3 Monate kostenlos. Das Ganze hat keine 5 Minuten gedauert – Link teilen, fertig!"
+                    </p>
+                    <p class="text-sm text-gray-500 font-semibold">— Sarah M., Scout seit Januar 2026</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 border-t border-white/5">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-black text-sm">PG</div>
+                <span class="font-semibold">Power Gym Berlin</span>
+            </div>
+            <div>Demo-Seite für SIM-Scouting Testumgebung</div>
+            <div class="flex items-center gap-1 text-gray-700">
+                Powered by <a href="https://www.studios-in-motion.de/tools/empfehlungs-tool/" class="text-gray-500 hover:text-brand ml-1 font-semibold">SIM-Scouting</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
