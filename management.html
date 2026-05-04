@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIM-Scouting – Betreiber-Verwaltung</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(30,41,59,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .modal-bg { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .fade-in { animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6 !important; }
+        .reward-card:hover { border-color: rgba(59,130,246,0.5); }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen">
+
+    <!-- Auth Overlay -->
+    <div id="auth-layer" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
+        <div class="glass p-8 rounded-2xl w-full max-w-sm mx-4">
+            <div class="text-center mb-6">
+                <img src="https://simscouting.studios-in-motion.de/logo_studios-in-motion.png" alt="Logo" class="h-12 mx-auto mb-4">
+                <h2 class="text-xl font-bold">Betreiber-Verwaltung</h2>
+                <p class="text-slate-400 text-sm mt-1">Bitte Passwort eingeben</p>
+            </div>
+            <form id="login-form" class="flex flex-col gap-3">
+                <input type="password" id="login-password" placeholder="Passwort" autofocus
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 text-sm transition text-center tracking-widest">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition">
+                    <i class="fa-solid fa-lock mr-2"></i>Einloggen
+                </button>
+                <p id="login-error" class="text-red-400 text-sm text-center hidden">Falsches Passwort</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="app" class="hidden p-4 md:p-6 max-w-7xl mx-auto">
+
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div class="flex items-center gap-3">
+                <img src="https://simscouting.studios-in-motion.de/logo_studios-in-motion.png" alt="Logo" class="h-8">
+                <div>
+                    <h1 class="text-2xl font-bold">Betreiber-Verwaltung</h1>
+                    <p class="text-slate-500 text-xs">SIM-Scouting Mandantenverwaltung</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="admin.html" class="text-sm text-slate-400 hover:text-white bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 transition">
+                    <i class="fa-solid fa-chart-line mr-1"></i>Tenant-Dashboard
+                </a>
+                <button onclick="handleLogout()" class="p-2 hover:bg-slate-800 rounded-lg transition" title="Abmelden">
+                    <i class="fa-solid fa-right-from-bracket text-slate-400"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Global KPIs -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass p-5 rounded-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Tenants</p>
+                <h3 class="text-2xl font-bold mt-1" id="kpi-tenants">–</h3>
+            </div>
+            <div class="glass p-5 rounded-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Scouts gesamt</p>
+                <h3 class="text-2xl font-bold mt-1" id="kpi-scouts">–</h3>
+            </div>
+            <div class="glass p-5 rounded-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Leads gesamt</p>
+                <h3 class="text-2xl font-bold mt-1" id="kpi-leads">–</h3>
+            </div>
+            <div class="glass p-5 rounded-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Aktive Rewards</p>
+                <h3 class="text-2xl font-bold mt-1" id="kpi-rewards">–</h3>
+            </div>
+        </div>
+
+        <!-- Tenant List -->
+        <div class="glass rounded-xl p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-building text-blue-400"></i> Mandanten
+                </h3>
+                <button onclick="openTenantModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                    <i class="fa-solid fa-plus mr-1"></i>Neuer Tenant
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-slate-400 text-sm border-b border-slate-700 bg-slate-800/50">
+                            <th class="p-3">Logo</th>
+                            <th class="p-3">Name</th>
+                            <th class="p-3">E-Mail</th>
+                            <th class="p-3">Ansprechpartner</th>
+                            <th class="p-3 text-center">Scouts</th>
+                            <th class="p-3 text-center">Leads</th>
+                            <th class="p-3 text-center">Rewards</th>
+                            <th class="p-3 text-center">Status</th>
+                            <th class="p-3 text-right">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tenants-body" class="text-sm text-slate-300">
+                        <tr><td colspan="9" class="p-4 text-center text-slate-500">Lade Tenants...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center text-slate-600 text-sm">
+            Betreiber-Verwaltung v1.0 • SIM-Scouting
+        </div>
+    </div>
+
+    <!-- Tenant Modal -->
+    <div id="tenant-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-bg" onclick="closeTenantModal()"></div>
+        <div class="relative bg-slate-900 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl fade-in">
+            <div class="flex items-center justify-between p-6 border-b border-slate-700">
+                <h2 class="text-xl font-bold" id="tenant-modal-title">Neuer Tenant</h2>
+                <button onclick="closeTenantModal()" class="h-10 w-10 rounded-full hover:bg-slate-700 flex items-center justify-center transition">
+                    <i class="fa-solid fa-times text-slate-400"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <input type="hidden" id="tf-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Name *</label>
+                        <input id="tf-name" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="Studio-Name">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">E-Mail *</label>
+                        <input id="tf-email" type="email" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="info@studio.de">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Ansprechpartner</label>
+                        <input id="tf-contact" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="Max Mustermann">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Telefon</label>
+                        <input id="tf-phone" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="0170 1234567">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Website</label>
+                        <input id="tf-website" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="https://www.studio.de">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Status</label>
+                        <select id="tf-status" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm">
+                            <option value="active">Aktiv</option>
+                            <option value="paused">Pausiert</option>
+                            <option value="cancelled">Gekündigt</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Adresse</label>
+                    <input id="tf-address" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="Musterstraße 1, 12345 Musterstadt">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Logo-URL</label>
+                    <input id="tf-logo" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm" placeholder="https://...logo.png">
+                    <p class="text-xs text-slate-500 mt-1">Logo auf den Scouting-Server hochladen und URL hier einfügen</p>
+                </div>
+
+                <!-- Rewards Section (nur bei Bearbeitung) -->
+                <div id="rewards-section" class="hidden border-t border-slate-700 pt-4 mt-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-gift text-amber-400"></i> Belohnungen / Boni
+                        </h3>
+                        <button onclick="addRewardRow()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 px-3 py-1.5 rounded-lg transition">
+                            <i class="fa-solid fa-plus mr-1"></i>Bonus hinzufügen
+                        </button>
+                    </div>
+                    <div id="rewards-list" class="space-y-3">
+                        <p class="text-sm text-slate-500 text-center py-2">Keine Belohnungen angelegt</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-700 flex justify-end gap-3">
+                <button onclick="closeTenantModal()" class="px-4 py-2.5 text-sm text-slate-400 hover:text-white transition">Abbrechen</button>
+                <button onclick="saveTenant()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition">
+                    <i class="fa-solid fa-check mr-1"></i>Speichern
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="management.js"></script>
+</body>
+</html>
