@@ -106,10 +106,15 @@ CREATE TRIGGER scout_registered_webhook
     "first_name": "Max",
     "last_name": "Mustermann",
     "phone": "0170 1234567",
-    "lead_data": { "source": "wa" },
+    "lead_data": { "email": "max@example.de", "company": "FirmaXY", "product": "Studio-Webseiten", "source": "wa" },
     "status": "pending",
     "created_at": "2026-05-03T07:35:09.579Z"
-  }
+  },
+  "tenant": {
+    "name": "studios in motion",
+    "email": "info@studios-in-motion.de"
+  },
+  "campaign_name": "Website Empfehlung"
 }
 ```
 
@@ -172,9 +177,10 @@ Erwartetes Ergebnis bei Erfolg: `status_code: 200`, `timed_out: false`, `error_m
 | Einstellung | Wert |
 |:--|:--|
 | Node Type | Email (SMTP) |
-| To | Studio-Inhaber (z.B. `info@powergym-berlin.de`) |
-| Subject | `Neuer Lead von: {{ Scout-Name }}` |
-| Body | Enthält Name und Telefonnummer des Leads |
+| To | `{{ $('Webhook').item.json.body.tenant.email }}` (dynamisch aus DB!) |
+| Subject | `Neuer Empfehlungslead – {{ $('Webhook').item.json.body.record.first_name }} {{ $('Webhook').item.json.body.record.last_name }}` |
+| Content Type | **HTML** |
+| Body | Professionelles HTML-Template mit allen Lead-Daten (nur vorhandene Felder werden angezeigt) |
 
 ### Node 6: E-Mail an Scout (Reward/High Five)
 
