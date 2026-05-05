@@ -177,6 +177,19 @@
                     </div>
                     <p class="text-xs text-slate-500 mt-1">Wird für Buttons und Akzente in E-Mails und Widgets verwendet</p>
                 </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Zugangs-Code (Tenant Dashboard)</label>
+                    <div class="flex items-center gap-2">
+                        <input id="tf-access-code" type="text" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-4 text-sm font-mono tracking-wider" placeholder="Wird automatisch generiert" readonly>
+                        <button onclick="regenerateAccessCode()" type="button" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2.5 rounded-lg text-sm transition" title="Neuen Code generieren">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                        <button onclick="copyAccessCode()" type="button" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2.5 rounded-lg text-sm transition" title="Code kopieren">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Diesen Code zusammen mit der E-Mail dem Kunden für den Login ins <a href="tenant_dashboard.html" class="text-blue-400 hover:underline" target="_blank">Tenant Dashboard</a> geben</p>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
                         <label class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Hintergrund-Medien URL</label>

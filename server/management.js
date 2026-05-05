@@ -135,7 +135,7 @@ window.openTenantModal = async function(tenantId) {
     document.getElementById('rewards-section').classList.toggle('hidden', !isEdit);
 
     // Reset form
-    ['tf-id','tf-name','tf-email','tf-contact','tf-phone','tf-website','tf-address','tf-logo','tf-color-hex'].forEach(id => {
+    ['tf-id','tf-name','tf-email','tf-contact','tf-phone','tf-website','tf-address','tf-logo','tf-color-hex','tf-access-code'].forEach(id => {
         document.getElementById(id).value = '';
     });
     document.getElementById('tf-status').value = 'active';
@@ -160,6 +160,7 @@ window.openTenantModal = async function(tenantId) {
             document.getElementById('tf-bg-media').value = t.background_media || '';
             document.getElementById('tf-bg-type').value = t.background_type || 'none';
             document.getElementById('tf-status').value = t.status || 'active';
+            document.getElementById('tf-access-code').value = t.access_code || '';
         }
         await loadRewards(tenantId);
     } else {
@@ -291,4 +292,40 @@ window.deleteReward = async function(rewardId) {
     const tenantId = document.getElementById('tf-id').value;
     await supabase.from('rewards').delete().eq('id', rewardId);
     await loadRewards(tenantId);
+};
+
+// ── ACCESS CODE ──
+function generateCode() {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    let code = 'SC-';
+    for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+}
+
+window.regenerateAccessCode = async function() {
+    const id = document.getElementById('tf-id').value;
+    const newCode = generateCode();
+    document.getElementById('tf-access-code').value = newCode;
+
+    if (id) {
+        try {
+            const { error } = await supabase.from('tenants').update({ access_code: newCode }).eq('id', id);
+            if (error) throw error;
+            const t = tenantsData.find(x => x.id === id);
+            if (t) t.access_code = newCode;
+        } catch (err) {
+            alert('Fehler: ' + err.message);
+        }
+    }
+};
+
+window.copyAccessCode = function() {
+    const code = document.getElementById('tf-access-code').value;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = event.currentTarget;
+        const icon = btn.querySelector('i');
+        icon.className = 'fa-solid fa-check text-emerald-400';
+        setTimeout(() => { icon.className = 'fa-solid fa-copy'; }, 1500);
+    });
 };
